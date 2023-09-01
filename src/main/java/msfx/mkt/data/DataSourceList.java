@@ -18,54 +18,53 @@ package msfx.mkt.data;
 
 import msfx.mkt.data.info.DataInfo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * A source of timed data.
+ * A data source backed by an array list.
  *
  * @author Miquel Sas
  */
-public abstract class DataSource {
+public class DataSourceList extends DataSource {
 
 	/**
-	 * Information about the data elements of the source.
+	 * The list.
 	 */
-	private final DataInfo dataInfo;
+	private List<Data> dataList = new ArrayList<>();
 
 	/**
 	 * Constructor.
 	 *
 	 * @param dataInfo Information about the data elements of the source.
 	 */
-	public DataSource(DataInfo dataInfo) {
-		this.dataInfo = dataInfo;
+	public DataSourceList(DataInfo dataInfo) {
+		super(dataInfo);
 	}
-
+	/**
+	 * Add data to the list.
+	 * @param data The data.
+	 */
+	public void addData(Data data) {
+		dataList.add(data);
+	}
 	/**
 	 * Return the data element at the given index.
 	 *
 	 * @param index The index.
 	 * @return The data element.
 	 */
-	public abstract Data getData(int index);
-	/**
-	 * Returns the data info.
-	 *
-	 * @return The data info.
-	 */
-	public DataInfo getInfo() {
-		return dataInfo;
+	@Override
+	public Data getData(int index) {
+		return dataList.get(index);
 	}
 	/**
 	 * Return the size. May increase with time.
 	 *
 	 * @return The size.
 	 */
-	public abstract int size();
-	/**
-	 * Check whether the list is empty.
-	 *
-	 * @return A boolean.
-	 */
-	public boolean isEmpty() {
-		return size() == 0;
+	@Override
+	public int size() {
+		return dataList.size();
 	}
 }

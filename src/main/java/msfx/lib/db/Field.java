@@ -139,10 +139,6 @@ public class Field {
 	 * A flag that indicates whether this field is a primary key field.
 	 */
 	private boolean primaryKey = false;
-	/**
-	 * A flag that indicates whether this field is nullable.
-	 */
-	private boolean nullable = false;
 
 	/**
 	 * Optional default create value.
@@ -208,12 +204,8 @@ public class Field {
 		this.decimals = field.decimals;
 
 		this.primaryKey = field.primaryKey;
-		this.nullable = field.nullable;
-
 		this.defaultCreateValue = field.defaultCreateValue;
-
 		this.table = field.table;
-
 		this.function = field.function;
 
 		this.header = field.header;
@@ -365,15 +357,6 @@ public class Field {
 	}
 
 	/**
-	 * Give access to additional and optional properties.
-	 *
-	 * @return The properties' container.
-	 */
-	public Properties getProperties() {
-		return properties;
-	}
-
-	/**
 	 * Check whether this field is a primary key field.
 	 *
 	 * @return A boolean
@@ -459,7 +442,7 @@ public class Field {
 	 * @return A boolean.
 	 */
 	public boolean isVirtual() {
-		return function != null;
+		return function != null && !function.isEmpty();
 	}
 
 	/**
@@ -608,6 +591,15 @@ public class Field {
 	 */
 	public void setDisplayDecimals(Integer displayDecimals) {
 		this.displayDecimals = displayDecimals;
+	}
+
+	/**
+	 * Give access to additional and optional properties.
+	 *
+	 * @return The properties' container.
+	 */
+	public Properties getProperties() {
+		return properties;
 	}
 
 	/**
