@@ -48,11 +48,27 @@ public class TestPlotData {
 		list_0.addData(new Data(secs + (5 * 300), 0, 0, 0, 0));
 		list_0.addData(new Data(secs + (6 * 300), 0, 0, 0, 0));
 		list_0.addData(new Data(secs + (7 * 300), 0, 0, 0, 0));
-		list_0.addData(new Data(secs + (8 * 300), 0, 0, 0, 0));
-		list_0.addData(new Data(secs + (9 * 300), 0, 0, 0, 0));
+
+		DataSourceList list_1 = new DataSourceList(info);
+		list_1.addData(new Data(secs + (2 * 300), 0, 0, 0, 0));
+		list_1.addData(new Data(secs + (3 * 300), 0, 0, 0, 0));
+		list_1.addData(new Data(secs + (5 * 300), 0, 0, 0, 0));
+		list_1.addData(new Data(secs + (6 * 300), 0, 0, 0, 0));
+
+		DataSourceList list_2 = new DataSourceList(info);
+		list_2.addData(new Data(secs + (2 * 300), 0, 0, 0, 0));
+		list_2.addData(new Data(secs + (3 * 300), 0, 0, 0, 0));
+		list_2.addData(new Data(secs + (4 * 300), 0, 0, 0, 0));
+		list_2.addData(new Data(secs + (5 * 300), 0, 0, 0, 0));
+		list_2.addData(new Data(secs + (6 * 300), 0, 0, 0, 0));
+		list_2.addData(new Data(secs + (7 * 300), 0, 0, 0, 0));
+		list_2.addData(new Data(secs + (8 * 300), 0, 0, 0, 0));
+		list_2.addData(new Data(secs + (9 * 300), 0, 0, 0, 0));
 
 		PlotData plotData = new PlotData();
 		plotData.addDataSource(list_0);
+		plotData.addDataSource(list_1);
+		plotData.addDataSource(list_2);
 
 	}
 }

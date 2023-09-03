@@ -73,7 +73,7 @@ public class DataInfo {
 	 *                   picked from the instrument. If the instrument is null it must be GE zero.
 	 * @param tickScale  The tick scale, if the instrument is not null, can be -1, and then it is
 	 *                   picked from the instrument. If the instrument is null it must be GE zero.
-	 * @param outputs    List of information of outputs, with sequencial indexes starting at zero.
+	 * @param outputs    List of information of outputs, with sequential indexes starting at zero.
 	 */
 	public DataInfo(
 			String id,

@@ -68,11 +68,11 @@ public class Data {
 	 * Constructor.
 	 *
 	 * @param time Start time in epoch seconds.
-	 * @param data Array of data values.
+	 * @param values Array of data values.
 	 */
-	public Data(int time, double... data) {
+	public Data(int time, double... values) {
 		this.time = time;
-		this.values = data;
+		this.values = values;
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class Data {
 	}
 
 	/**
-	 * Returns a string representation applying the nmber of decimals to the values.
+	 * Returns a string representation applying the number of decimals to the values.
 	 *
 	 * @return The string representation.
 	 */
@@ -132,16 +132,17 @@ public class Data {
 		/*
 		 * Time part, adjust to minutes.
 		 */
-		LocalDateTime dateTime = LocalDateTime.ofEpochSecond(time, 0, ZoneOffset.UTC);
-		b.append(Strings.leftPad(dateTime.getYear(), 4, "0"));
-		b.append("-");
-		b.append(Strings.leftPad(dateTime.getMonthValue(), 2, "0"));
-		b.append("-");
-		b.append(Strings.leftPad(dateTime.getDayOfMonth(), 2, "0"));
-		b.append(" ");
-		b.append(Strings.leftPad(dateTime.getHour(), 2, "0"));
-		b.append(":");
-		b.append(Strings.leftPad(dateTime.getMinute(), 2, "0"));
+//		LocalDateTime dateTime = LocalDateTime.ofEpochSecond(time, 0, ZoneOffset.UTC);
+//		b.append(Strings.leftPad(dateTime.getYear(), 4, "0"));
+//		b.append("-");
+//		b.append(Strings.leftPad(dateTime.getMonthValue(), 2, "0"));
+//		b.append("-");
+//		b.append(Strings.leftPad(dateTime.getDayOfMonth(), 2, "0"));
+//		b.append(" ");
+//		b.append(Strings.leftPad(dateTime.getHour(), 2, "0"));
+//		b.append(":");
+//		b.append(Strings.leftPad(dateTime.getMinute(), 2, "0"));
+		b.append(time);
 
 		/*
 		 * Values.

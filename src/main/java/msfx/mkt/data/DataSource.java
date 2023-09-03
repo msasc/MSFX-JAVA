@@ -18,6 +18,8 @@ package msfx.mkt.data;
 
 import msfx.mkt.data.info.DataInfo;
 
+import java.util.UUID;
+
 /**
  * A source of timed data.
  *
@@ -25,6 +27,10 @@ import msfx.mkt.data.info.DataInfo;
  */
 public abstract class DataSource {
 
+	/**
+	 * ID created at construction time to uniquely identify this data source.
+	 */
+	private final String id = UUID.randomUUID().toString();
 	/**
 	 * Information about the data elements of the source.
 	 */
@@ -37,6 +43,15 @@ public abstract class DataSource {
 	 */
 	public DataSource(DataInfo dataInfo) {
 		this.dataInfo = dataInfo;
+	}
+
+	/**
+	 * Return the unique identifier.
+	 *
+	 * @return The ID.
+	 */
+	public String getID() {
+		return id;
 	}
 
 	/**

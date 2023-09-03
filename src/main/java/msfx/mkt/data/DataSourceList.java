@@ -31,7 +31,7 @@ public class DataSourceList extends DataSource {
 	/**
 	 * The list.
 	 */
-	private List<Data> dataList = new ArrayList<>();
+	private final List<Data> dataList = new ArrayList<>();
 
 	/**
 	 * Constructor.

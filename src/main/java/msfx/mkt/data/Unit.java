@@ -38,7 +38,7 @@ public enum Unit {
 	/**
 	 * One char id.
 	 */
-	private String id;
+	private final String id;
 
 	/**
 	 * Constructor.
