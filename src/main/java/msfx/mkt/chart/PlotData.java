@@ -178,4 +178,20 @@ public class PlotData {
 		}
 
 	}
+
+	/**
+	 * Returns the list of indexes of a data source. These indexes are aligned along the timeline
+	 * and some can be negative and thus invalid.
+	 *
+	 * @param dataSource The data source to lookup the indexes for.
+	 * @return The list of indexes.
+	 */
+	public List<Integer> getIndexes(DataSource dataSource) {
+		for (int i = 0; i < dataSources.size(); i++) {
+			if (dataSources.get(i).getID().equals(dataSource.getID())) {
+				return dataIndexes.get(i);
+			}
+		}
+		throw new IllegalArgumentException("Data source not contained in this plot data");
+	}
 }

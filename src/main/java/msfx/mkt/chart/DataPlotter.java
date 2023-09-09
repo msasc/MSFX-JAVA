@@ -18,7 +18,6 @@ package msfx.mkt.chart;
 
 import javafx.scene.canvas.GraphicsContext;
 import msfx.mkt.DataSource;
-import msfx.mkt.chart_backup.PlotData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,13 +80,8 @@ public abstract class DataPlotter {
 	public abstract double[] getValues(int index);
 
 	/**
-	 * Perform the plot withing the argument indexes.
-	 *
-	 * @param gc         The graphics context.
-	 * @param plotData   The plot data container, used to know the effective index within the data
-	 *                   source per plot index.
-	 * @param startIndex The start index.
-	 * @param endIndex   The end index.
+	 * Perform the plot.
+	 * @param context The plot context.
 	 */
-	public abstract void plot(GraphicsContext gc, PlotData plotData, int startIndex, int endIndex);
+	public abstract void plot(PlotContext context);
 }

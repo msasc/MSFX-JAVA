@@ -19,11 +19,11 @@ package msfx.mkt.chart;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import msfx.lib.util.Numbers;
-import msfx.mkt.chart_backup.PlotScale;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +81,8 @@ public class ChartFrame {
 
 		private PlotScale scale;
 
+		private final PlotContext context;
+
 		/**
 		 * List of data plotters.
 		 */
@@ -99,6 +101,8 @@ public class ChartFrame {
 			pane = new BorderPane();
 			pane.setCenter(plotArea.pane);
 			pane.setRight(vaxis.pane);
+
+			context = new Context(this);
 		}
 
 		/**
@@ -136,6 +140,7 @@ public class ChartFrame {
 		}
 		/**
 		 * Calculates the coordinate Y given the value and the scale of this area.
+		 *
 		 * @param value The value.
 		 * @return The coordinate Y.
 		 */
@@ -143,7 +148,7 @@ public class ChartFrame {
 
 			double minValue = minimumValue;
 			double maxValue = maximumValue;
-			if (scale == msfx.mkt.chart_backup.PlotScale.LOGARITHMIC) {
+			if (scale == PlotScale.LOGARITHMIC) {
 				minValue = Math.log1p(minValue);
 				maxValue = Math.log1p(maxValue);
 				value = Math.log1p(value);
@@ -196,7 +201,7 @@ public class ChartFrame {
 		/**
 		 * Grid that contains the cursor information and the buttons.
 		 */
-		private GridPane pane = new GridPane();
+		private final GridPane pane = new GridPane();
 
 	}
 
@@ -249,6 +254,62 @@ public class ChartFrame {
 	}
 
 	/**
+	 * The plot context to pass to data plotters.
+	 */
+	public class Context implements PlotContext {
+		/**
+		 * The associated plot frame.
+		 */
+		private PlotFrame plotFrame;
+		/**
+		 * Constructor.
+		 *
+		 * @param plotFrame The plot frame.
+		 */
+		private Context(PlotFrame plotFrame) {
+			this.plotFrame = plotFrame;
+		}
+		/**
+		 * Returns the plot data.
+		 *
+		 * @return The plot data.
+		 */
+		@Override
+		public PlotData getPlotData() {
+			return plotData;
+		}
+		/**
+		 * Returns the graphics context.
+		 *
+		 * @return The graphics context.
+		 */
+		@Override
+		public GraphicsContext getGraphicsContext() {
+			return plotFrame.plotArea.canvas.getGraphicsContext2D();
+		}
+		/**
+		 * Returns the coordinate X.
+		 *
+		 * @param index The index.
+		 * @return The coordinate X.
+		 */
+		@Override
+		public double getCoordinateX(int index) {
+			return getCoordinateX(index);
+		}
+		/**
+		 * Returns the coordinate Y.
+		 *
+		 * @param value The value.
+		 * @return The coordinate Y.
+		 */
+		@Override
+		public double getCoordinateY(double value) {
+			return plotFrame.getCoordinateY(value);
+		}
+	}
+
+	/**
 	 * The insets, as a unitary factor, that define the margins of the panes. The plot area has a
 	 * margin all around. The vertical axis has a top and bottom margin, that are the as the ones
 	 * of its correspondent plot area. The horizontal axis and the plot info area have no margins
@@ -286,8 +347,13 @@ public class ChartFrame {
 		xAxis = new XAxis();
 	}
 
+	/**
+	 * Calculate the horizontal margins common to all plot areas.
+	 */
 	private void calculateHorizontalMargins() {
-		if (plotFrames.isEmpty()) return;
+		if (plotFrames.isEmpty()) {
+			throw new IllegalStateException("No plot frames available");
+		}
 		double width = plotFrames.get(0).plotArea.pane.getWidth();
 		marginRight = Numbers.round(width * insets.getRight(), 0);
 		marginLeft = Numbers.round(width * insets.getLeft(), 0);
@@ -296,10 +362,20 @@ public class ChartFrame {
 	/**
 	 * Calculates the coordinate X given the index within the plot data indexes.
 	 *
-	 * @param index    The index.
+	 * @param index The index.
 	 * @return The coordinate X.
 	 */
 	private double getCoordinateX(int index) {
-		return 0;
+		if (plotFrames.isEmpty()) {
+			throw new IllegalStateException("No plot frames available");
+		}
+		double width = plotFrames.get(0).plotArea.pane.getWidth();
+		double startIndex = plotData.getStartIndex();
+		double endIndex = plotData.getEndIndex();
+		double indexFactor = ((double) index - startIndex) / (endIndex - startIndex);
+		double plotWidth = width - marginLeft - marginRight;
+		double relativeX = indexFactor * plotWidth;
+		double coordinateX = Numbers.round(marginLeft + relativeX, 0);
+		return coordinateX;
 	}
 }
