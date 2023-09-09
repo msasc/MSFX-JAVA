@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package msfx.mkt.data.info;
+package msfx.mkt.info;
 
-import msfx.mkt.data.Data;
+import msfx.mkt.Data;
 
 /**
  * Information about data output values.

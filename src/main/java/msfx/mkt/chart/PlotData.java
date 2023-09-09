@@ -14,81 +14,47 @@
  * limitations under the License.
  */
 
-package msfx.mkt.data;
+package msfx.mkt.chart;
 
 import msfx.lib.util.Numbers;
+import msfx.mkt.DataSource;
+import msfx.mkt.Period;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Container of all information related to the data to plot.
+ * Container of all information related to the data that is aligned to the same timeline.
  * <p>
  * A plot data pack can contain several data sources. All data sources must be of the same period,
  * but not all the sources need to have the same number of items and perhaps not continuous. Thus,
  * when data sources are added a merge must be performed to access them in a continuous timeline.
- * <p>
- * Additionally, contains a list of data plotters. A data plotter uses one or more data sources to
- * plot, and there may more than one plotter per data source.
  *
  * @author Miquel Sas
  */
 public class PlotData {
 
 	/**
-	 * Plot scale.
-	 */
-	public enum Scale {
-		LINEAR, LOGARITHMIC, PERCENTAGE;
-	}
-
-	/**
-	 * Enumerates the types of plots, line, bar, candlestick, histogram, etc.
-	 */
-	public enum Type {
-		LINE, BAR, CANDLESTICK, HISTOGRAM;
-	}
-
-	/**
 	 * List of data sources.
 	 */
-	private final List<DataSource> dataSources = new ArrayList<>();
+	final List<DataSource> dataSources = new ArrayList<>();
 	/**
 	 * List of effective times including all times al oll data sources.
 	 */
-	private final List<Integer> dataTimes = new ArrayList<>();
+	final List<Integer> dataTimes = new ArrayList<>();
 	/**
 	 * List of global indexes per data source, -1 for out of range indexes.
 	 */
-	private final List<List<Integer>> dataIndexes = new ArrayList<>();
-
-	/**
-	 * List of plotters, normally one per data source, but can be any number of plotters and each
-	 * plotter can use any number of data sources.
-	 */
-	private final List<DataPlotter> plotters = new ArrayList<>();
+	final List<List<Integer>> dataIndexes = new ArrayList<>();
 
 	/**
 	 * Start plot index, can be negative.
 	 */
-	private int startIndex;
+	int startIndex;
 	/**
 	 * End plot index, can be greater than the maximum data index.
 	 */
-	private int endIndex;
-	/**
-	 * Minimum value within the plotted range.
-	 */
-	private double minValue;
-	/**
-	 * Maximum value within the plotted range.
-	 */
-	private double maxValue;
-
-	/**
-	 * Scale shared by all data sources.
-	 */
-	private Scale scale = Scale.LOGARITHMIC;
+	int endIndex;
 
 	/**
 	 * Adds the data source, validates the period and rebuilds the list of data times and data
@@ -108,74 +74,9 @@ public class PlotData {
 	}
 
 	/**
-	 * Adds a data plotter to this plot data. All data sources used by the data plotter must be
-	 * contained in this plot data in order to be properly merged along the timeline. Thus, when
-	 * adding a plotter non-contained sources are added, and thus the plot data can be directly
-	 * configured only adding plotters.
-	 *
-	 * @param plotter The {@link DataPlotter}.
-	 */
-	public void addDataPlotter(DataPlotter plotter) {
-
-		/* Validate null plotter. */
-		if (plotter == null) {
-			throw new NullPointerException("Plotter ncan not be null");
-		}
-
-		/* Ensure that plotter data sources are contained. */
-		List<DataSource> plotterSources = plotter.getDataSources();
-		for (DataSource plotterSource : plotterSources) {
-			boolean exists = false;
-			for (DataSource dataSource : dataSources) {
-				if (dataSource.getID().equals(plotterSource.getID())) {
-					exists = true;
-				}
-			}
-			if (!exists) {
-				addDataSource(plotterSource);
-			}
-		}
-
-		/* Add the plotter. */
-		plotters.add(plotter);
-	}
-
-	/**
-	 * Calculate the minimum and maximum values within the frame.
-	 */
-	private void calculateMinMaxValues() {
-
-		int dataSize = dataTimes.size();
-		maxValue = Numbers.MIN_DOUBLE;
-		minValue = Numbers.MAX_DOUBLE;
-
-		for (int index = startIndex; index < endIndex; index++) {
-			if (index < 0 || index >= dataSize) {
-				continue;
-			}
-			for (DataPlotter plotter : plotters) {
-				double[] values = plotter.getValues(index);
-				for (double value : values) {
-					if (value > maxValue) {
-						maxValue = value;
-					}
-					if (value < minValue) {
-						minValue = value;
-					}
-				}
-			}
-		}
-	}
-
-	private void calculateStartEndIndexes(int visibleBars, int endIndex) {
-		this.endIndex = endIndex;
-		this.startIndex = endIndex - visibleBars +1;
-	}
-
-	/**
 	 * Merge data sources rebuilding data times and indexes.
 	 */
-	private void mergeDataSources() {
+	void mergeDataSources() {
 
 		dataTimes.clear();
 		dataIndexes.clear();

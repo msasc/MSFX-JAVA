@@ -16,9 +16,10 @@
 
 package test.mkt;
 
-import msfx.mkt.data.*;
-import msfx.mkt.data.info.DataInfo;
-import msfx.mkt.data.info.OutputInfo;
+import msfx.mkt.*;
+import msfx.mkt.chart.PlotData;
+import msfx.mkt.info.DataInfo;
+import msfx.mkt.info.OutputInfo;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;

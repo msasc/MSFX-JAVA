@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package msfx.mkt.data;
+package msfx.mkt;
 
-import msfx.mkt.data.info.DataInfo;
+import msfx.mkt.info.DataInfo;
 
 import java.util.UUID;
 

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package msfx.mkt.data.info;
+package msfx.mkt.info;
 
-import msfx.mkt.data.Instrument;
-import msfx.mkt.data.Period;
+import msfx.mkt.Instrument;
+import msfx.mkt.Period;
 
 import java.util.ArrayList;
 import java.util.Comparator;

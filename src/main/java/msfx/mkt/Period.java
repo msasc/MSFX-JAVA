@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package msfx.mkt.data;
+package msfx.mkt;
 
 /**
  * Periods of data, like 5 minutes, 30 minutes, 1 hour, 4 hours, etc.

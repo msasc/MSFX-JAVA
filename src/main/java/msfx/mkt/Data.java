@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package msfx.mkt.data;
+package msfx.mkt;
 
 import msfx.lib.util.Numbers;
 import msfx.lib.util.Strings;

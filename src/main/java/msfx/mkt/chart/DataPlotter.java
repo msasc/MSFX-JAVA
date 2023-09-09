@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package msfx.mkt.data;
+package msfx.mkt.chart;
 
 import javafx.scene.canvas.GraphicsContext;
+import msfx.mkt.DataSource;
+import msfx.mkt.chart.PlotData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +33,7 @@ import java.util.List;
 public abstract class DataPlotter {
 
 	/**
-	 * List of data sources this plotter uses.
+	 * List of data sources this plotter uses, in the proper order of precedence.
 	 */
 	private final List<DataSource> dataSources;
 
