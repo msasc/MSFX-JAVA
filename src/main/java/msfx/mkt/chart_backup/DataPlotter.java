@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package msfx.mkt.chart;
+package msfx.mkt.chart_backup;
 
 import javafx.scene.canvas.GraphicsContext;
 import msfx.mkt.DataSource;
-import msfx.mkt.chart_backup.PlotData;
 
 import java.util.ArrayList;
 import java.util.List;

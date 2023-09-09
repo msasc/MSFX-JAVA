@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package msfx.mkt.chart;
+package msfx.mkt.chart_backup;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
@@ -23,11 +23,11 @@ import javafx.scene.layout.Pane;
 import msfx.lib.util.Numbers;
 
 /**
- * Horizontal axis, the component where the timeline is shown.
+ * Vertical axis, the component where scaled values of the plot are shown.
  *
  * @author Miquel Sas
  */
-public class ChartXAxis {
+public class ChartVAxis {
 
 	/**
 	 * The pane that contains the bound canvas.
@@ -41,7 +41,7 @@ public class ChartXAxis {
 	/**
 	 * Constructor.
 	 */
-	ChartXAxis() {
+	ChartVAxis() {
 		pane = new Pane();
 		canvas = new Canvas();
 		pane.getChildren().add(canvas);

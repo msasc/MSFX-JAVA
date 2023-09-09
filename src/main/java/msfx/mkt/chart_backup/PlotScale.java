@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package msfx.mkt.chart;
+package msfx.mkt.chart_backup;
 
 /**
- * Plot scales.
+ * Plot scale.
  *
  * @author Miquel Sas
  */
 public enum PlotScale {
-	/**
-	 * Linear plot scale.
-	 */
-	LINEAR,
-	/**
-	 * Logarithmic plot scale.
-	 */
-	LOGARITHMIC,
-	/**
-	 * Percentage plot scale.
-	 */
-	PERCENTAGE;
+	LINEAR, LOGARITHMIC, PERCENTAGE;
 }

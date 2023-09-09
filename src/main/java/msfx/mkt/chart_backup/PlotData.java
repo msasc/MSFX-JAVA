@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package msfx.mkt.chart;
+package msfx.mkt.chart_backup;
 
 import msfx.lib.util.Numbers;
 import msfx.mkt.DataSource;
@@ -37,24 +37,24 @@ public class PlotData {
 	/**
 	 * List of data sources.
 	 */
-	private final List<DataSource> dataSources = new ArrayList<>();
+	final List<DataSource> dataSources = new ArrayList<>();
 	/**
 	 * List of effective times including all times al oll data sources.
 	 */
-	private final List<Integer> dataTimes = new ArrayList<>();
+	final List<Integer> dataTimes = new ArrayList<>();
 	/**
 	 * List of global indexes per data source, -1 for out of range indexes.
 	 */
-	private final List<List<Integer>> dataIndexes = new ArrayList<>();
+	final List<List<Integer>> dataIndexes = new ArrayList<>();
 
 	/**
 	 * Start plot index, can be negative.
 	 */
-	private int startIndex;
+	int startIndex;
 	/**
 	 * End plot index, can be greater than the maximum data index.
 	 */
-	private int endIndex;
+	int endIndex;
 
 	/**
 	 * Adds the data source, validates the period and rebuilds the list of data times and data
@@ -72,27 +72,11 @@ public class PlotData {
 		dataSources.add(dataSource);
 		mergeDataSources();
 	}
-	/**
-	 * Returns the start index.
-	 *
-	 * @return The start index.
-	 */
-	public int getStartIndex() {
-		return startIndex;
-	}
-	/**
-	 * Returns the end index.
-	 *
-	 * @return The end index.
-	 */
-	public int getEndIndex() {
-		return endIndex;
-	}
 
 	/**
 	 * Merge data sources rebuilding data times and indexes.
 	 */
-	private void mergeDataSources() {
+	void mergeDataSources() {
 
 		dataTimes.clear();
 		dataIndexes.clear();

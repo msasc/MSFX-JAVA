@@ -22,5 +22,20 @@ package msfx.mkt.chart;
  * @author Miquel Sas
  */
 public enum PlotType {
-	LINE, BAR, CANDLESTICK, HISTOGRAM;
+	/**
+	 * Line chart.
+	 */
+	LINE,
+	/**
+	 * Bar chart.
+	 */
+	BAR,
+	/**
+	 * Candlestick chart.
+	 */
+	CANDLESTICK,
+	/**
+	 * Histogram chart.
+	 */
+	HISTOGRAM;
 }

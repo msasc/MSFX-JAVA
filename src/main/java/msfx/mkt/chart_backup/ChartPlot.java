@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package msfx.mkt.chart;
+package msfx.mkt.chart_backup;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
