@@ -16,6 +16,8 @@
 
 package msfx.mkt;
 
+import java.util.Locale;
+
 /**
  * Periods of data, like 5 minutes, 30 minutes, 1 hour, 4 hours, etc.
  *
@@ -65,5 +67,22 @@ public final class Period {
 	 */
 	public int getSize() {
 		return size;
+	}
+
+	/**
+	 * Returns a string representation.
+	 *
+	 * @return A string representation.
+	 */
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		b.append(getSize());
+		b.append(" ");
+		b.append(getUnit().getShortName(Locale.getDefault()));
+		if (getSize() > 1) {
+			b.append("s");
+		}
+		return b.toString();
 	}
 }

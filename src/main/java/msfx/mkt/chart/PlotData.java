@@ -69,7 +69,9 @@ public class PlotData {
 				throw new IllegalArgumentException("Data source period invalid");
 			}
 		}
-		dataSources.add(dataSource);
+		if (!dataSources.contains(dataSource)) {
+			dataSources.add(dataSource);
+		}
 		mergeDataSources();
 	}
 	/**
@@ -180,6 +182,15 @@ public class PlotData {
 	}
 
 	/**
+	 * Returns the data size or number of periods.
+	 *
+	 * @return The data size.
+	 */
+	public int getDataSize() {
+		return dataTimes.size();
+	}
+
+	/**
 	 * Returns the list of indexes of a data source. These indexes are aligned along the timeline
 	 * and some can be negative and thus invalid.
 	 *
@@ -193,5 +204,59 @@ public class PlotData {
 			}
 		}
 		throw new IllegalArgumentException("Data source not contained in this plot data");
+	}
+
+	/**
+	 * Set the range of start and end indexes to N periods that finish at the end of the available
+	 * periods.
+	 *
+	 * @param periods The number of visible periods.
+	 */
+	public void setIndexesRangeFromEnd(int periods) {
+		int size = getDataSize();
+		endIndex = size - 1;
+		startIndex = endIndex - periods + 1;
+		if (startIndex < 0) {
+			startIndex = 0;
+		}
+	}
+	/**
+	 * Set the range of start and end indexes to N periods that start at the beginning of the
+	 * available periods.
+	 *
+	 * @param periods The number of visible periods.
+	 */
+	public void setIndexesRangeFromStart(int periods) {
+		int size = getDataSize();
+		startIndex = 0;
+		endIndex = startIndex + periods - 1;
+		if (endIndex >= size) {
+			endIndex = size - 1;
+		}
+	}
+
+	/**
+	 * Scroll the data using the parameter factor. For instance, a factor of -0.01 scrolls a
+	 * percentage of 1% to the origin of the timeline, while a factor of 0.05 scrolls a 5% to the
+	 * end of the timeline.
+	 *
+	 * @param factor The unitary factor to scroll.
+	 */
+	public void scroll(double factor) {
+
+		int periods = endIndex - startIndex + 1;
+		int toScroll = Numbers.getBigDecimal(getDataSize() * factor, 0).intValue();
+
+		/* Scroll to the origin. */
+		if (toScroll < 0) {
+			startIndex += toScroll;
+			endIndex = startIndex + periods - 1;
+		}
+
+		/* Scroll to the end. */
+		if (toScroll > 0) {
+			endIndex += toScroll;
+			startIndex = endIndex - periods + 1;
+		}
 	}
 }

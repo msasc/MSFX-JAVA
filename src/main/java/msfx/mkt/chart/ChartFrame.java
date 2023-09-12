@@ -16,7 +16,10 @@
 
 package msfx.mkt.chart;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -24,6 +27,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import msfx.lib.util.Numbers;
+import msfx.mkt.DataSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,8 +85,6 @@ public class ChartFrame {
 
 		private PlotScale scale;
 
-		private final PlotContext context;
-
 		/**
 		 * List of data plotters.
 		 */
@@ -101,8 +103,6 @@ public class ChartFrame {
 			pane = new BorderPane();
 			pane.setCenter(plotArea.pane);
 			pane.setRight(vaxis.pane);
-
-			context = new Context(this);
 		}
 
 		/**
@@ -167,6 +167,23 @@ public class ChartFrame {
 			double coordinateY = marginTop + chartHeight - relativeY;
 			return coordinateY;
 		}
+		/**
+		 * Returns a suitable plot context.
+		 *
+		 * @return The plot context to draw.
+		 */
+		private PlotContext getContext() {
+			return new Context(this);
+		}
+		/**
+		 * Plot the frame.
+		 */
+		private void plot() {
+			PlotContext context = getContext();
+			for (DataPlotter plotter : plotters) {
+				plotter.plot(context);
+			}
+		}
 	}
 
 	/**
@@ -202,7 +219,6 @@ public class ChartFrame {
 		 * Grid that contains the cursor information and the buttons.
 		 */
 		private final GridPane pane = new GridPane();
-
 	}
 
 	/**
@@ -254,6 +270,19 @@ public class ChartFrame {
 	}
 
 	/**
+	 * Width and height change listener to respond to size events.
+	 */
+	private class SizeListener implements ChangeListener<Number> {
+		@Override
+		public void changed(
+				ObservableValue<? extends Number> observable,
+				Number oldValue,
+				Number newValue) {
+			Platform.runLater(() -> { plot(); });
+		}
+	}
+
+	/**
 	 * The plot context to pass to data plotters.
 	 */
 	public class Context implements PlotContext {
@@ -269,33 +298,83 @@ public class ChartFrame {
 		private Context(PlotFrame plotFrame) {
 			this.plotFrame = plotFrame;
 		}
+
 		/**
 		 * Returns the plot data.
 		 *
 		 * @return The plot data.
 		 */
-		@Override
 		public PlotData getPlotData() {
 			return plotData;
 		}
+
 		/**
 		 * Returns the graphics context.
 		 *
 		 * @return The graphics context.
 		 */
-		@Override
 		public GraphicsContext getGraphicsContext() {
 			return plotFrame.plotArea.canvas.getGraphicsContext2D();
 		}
+
+		/**
+		 * Returns the width of the plot area.
+		 *
+		 * @return The width.
+		 */
+		public double getWidth() {
+			return plotFrame.plotArea.canvas.getWidth();
+		}
+		/**
+		 * Returns the height of the plot area.
+		 *
+		 * @return The height.
+		 */
+		public double getHeight() {
+			return plotFrame.plotArea.canvas.getHeight();
+		}
+
+		/**
+		 * Returns the top margin.
+		 *
+		 * @return The top margin.
+		 */
+		public double getMarginTop() {
+			return plotFrame.marginTop;
+		}
+		/**
+		 * Returns the right margin.
+		 *
+		 * @return The right margin.
+		 */
+		public double getMarginRight() {
+			return marginRight;
+		}
+		/**
+		 * Returns the bottom margin.
+		 *
+		 * @return The bottom margin.
+		 */
+		public double getMarginBottom() {
+			return plotFrame.marginBottom;
+		}
+		/**
+		 * Returns the left margin.
+		 *
+		 * @return The left margin.
+		 */
+		public double getMarginLeft() {
+			return marginLeft;
+		}
+
 		/**
 		 * Returns the coordinate X.
 		 *
 		 * @param index The index.
 		 * @return The coordinate X.
 		 */
-		@Override
 		public double getCoordinateX(int index) {
-			return getCoordinateX(index);
+			return ChartFrame.this.getCoordinateX(index);
 		}
 		/**
 		 * Returns the coordinate Y.
@@ -303,9 +382,25 @@ public class ChartFrame {
 		 * @param value The value.
 		 * @return The coordinate Y.
 		 */
-		@Override
 		public double getCoordinateY(double value) {
 			return plotFrame.getCoordinateY(value);
+		}
+
+		/**
+		 * Return the minimum value within the range of indexes.
+		 *
+		 * @return The minimum value.
+		 */
+		public double getMinimumValue() {
+			return plotFrame.minimumValue;
+		}
+		/**
+		 * Return the maximum value within the range of indexes.
+		 *
+		 * @return The maximum value.
+		 */
+		public double getMaximumValue() {
+			return plotFrame.maximumValue;
 		}
 	}
 
@@ -338,13 +433,40 @@ public class ChartFrame {
 	 */
 	private final XAxis xAxis;
 
+	private final BorderPane pane;
+
 	/**
 	 * Constructor.
 	 */
 	public ChartFrame() {
+
 		plotData = new PlotData();
 		plotFrames = new ArrayList<>();
 		xAxis = new XAxis();
+		pane = new BorderPane();
+
+		SizeListener sizeListener = new SizeListener();
+		pane.widthProperty().addListener(sizeListener);
+		pane.heightProperty().addListener(sizeListener);
+	}
+
+	/**
+	 * Add a plot frame.
+	 *
+	 * @param plotters The list of plotters of the frame.
+	 */
+	public void addPlotFrame(DataPlotter... plotters) {
+		PlotFrame plotFrame = new PlotFrame();
+		for (DataPlotter plotter : plotters) {
+			plotFrame.plotters.add(plotter);
+			for (DataSource source : plotter.getDataSources()) {
+				plotData.addDataSource(source);
+			}
+		}
+		plotFrames.add(plotFrame);
+		if (plotFrames.size() == 1) {
+			pane.setCenter(plotFrame.pane);
+		}
 	}
 
 	/**
@@ -378,4 +500,44 @@ public class ChartFrame {
 		double coordinateX = Numbers.round(marginLeft + relativeX, 0);
 		return coordinateX;
 	}
+
+	/**
+	 * Returns the main frame pane.
+	 *
+	 * @return The main frame pane.
+	 */
+	public Pane getPane() {
+		return pane;
+	}
+
+	/**
+	 * Set the range of start and end indexes to N periods that finish at the end of the available
+	 * periods.
+	 *
+	 * @param periods The number of visible periods.
+	 */
+	public void setIndexesRangeFromEnd(int periods) {
+		plotData.setIndexesRangeFromEnd(periods);
+	}
+	/**
+	 * Set the range of start and end indexes to N periods that start at the beginning of the
+	 * available periods.
+	 *
+	 * @param periods The number of visible periods.
+	 */
+	public void setIndexesRangeFromStart(int periods) {
+		plotData.setIndexesRangeFromStart(periods);
+	}
+
+	public void plot() {
+		for (PlotFrame plotFrame : plotFrames) {
+			plotFrame.calculateMinMaxValues(plotData.getStartIndex(), plotData.getEndIndex());
+			plotFrame.calculateVerticalMargins();;
+		}
+		calculateHorizontalMargins();
+		for (PlotFrame plotFrame : plotFrames) {
+			plotFrame.plot();
+		}
+	}
+
 }

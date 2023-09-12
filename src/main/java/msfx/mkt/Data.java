@@ -56,6 +56,25 @@ public class Data {
 	public static final int DATA_PRICE_SIZE = 5;
 
 	/**
+	 * Returns a boolean indicating if this OHLC data is bearish.
+	 *
+	 * @param data The data.
+	 * @return A boolean indicating if this OHLC data is bearish.
+	 */
+	public static boolean isBearishOHLC(Data data) {
+		return data.values[CLOSE] < data.values[OPEN];
+	}
+	/**
+	 * Returns a boolean indicating if this OHLC data is bullish.
+	 *
+	 * @param data The data.
+	 * @return A boolean indicating if this OHLC data is bullish.
+	 */
+	public static boolean isBullishOHLC(Data data) {
+		return data.values[CLOSE] >= data.values[OPEN];
+	}
+
+	/**
 	 * Data, any number of double values.
 	 */
 	private final double[] values;
@@ -132,17 +151,18 @@ public class Data {
 		/*
 		 * Time part, adjust to minutes.
 		 */
-//		LocalDateTime dateTime = LocalDateTime.ofEpochSecond(time, 0, ZoneOffset.UTC);
-//		b.append(Strings.leftPad(dateTime.getYear(), 4, "0"));
-//		b.append("-");
-//		b.append(Strings.leftPad(dateTime.getMonthValue(), 2, "0"));
-//		b.append("-");
-//		b.append(Strings.leftPad(dateTime.getDayOfMonth(), 2, "0"));
-//		b.append(" ");
-//		b.append(Strings.leftPad(dateTime.getHour(), 2, "0"));
-//		b.append(":");
-//		b.append(Strings.leftPad(dateTime.getMinute(), 2, "0"));
 		b.append(time);
+		b.append(", ");
+		LocalDateTime dateTime = LocalDateTime.ofEpochSecond(time, 0, ZoneOffset.ofHours(2));
+		b.append(Strings.leftPad(dateTime.getYear(), 4, "0"));
+		b.append("-");
+		b.append(Strings.leftPad(dateTime.getMonthValue(), 2, "0"));
+		b.append("-");
+		b.append(Strings.leftPad(dateTime.getDayOfMonth(), 2, "0"));
+		b.append(" ");
+		b.append(Strings.leftPad(dateTime.getHour(), 2, "0"));
+		b.append(":");
+		b.append(Strings.leftPad(dateTime.getMinute(), 2, "0"));
 
 		/*
 		 * Values.

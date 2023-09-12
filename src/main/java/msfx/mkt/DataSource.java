@@ -18,6 +18,7 @@ package msfx.mkt;
 
 import msfx.mkt.info.DataInfo;
 
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -82,5 +83,28 @@ public abstract class DataSource {
 	 */
 	public boolean isEmpty() {
 		return size() == 0;
+	}
+
+	/**
+	 * Check for equality.
+	 *
+	 * @param o An object.
+	 * @return A boolean.
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		DataSource that = (DataSource) o;
+		return Objects.equals(id, that.id);
+	}
+	/**
+	 * Returns the has code.
+	 *
+	 * @return The has code.
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 }

@@ -17,6 +17,7 @@
 package msfx.mkt.chart;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 import msfx.mkt.DataSource;
 
 import java.util.ArrayList;
@@ -35,6 +36,15 @@ public abstract class DataPlotter {
 	 * List of data sources this plotter uses, in the proper order of precedence.
 	 */
 	private final List<DataSource> dataSources;
+
+	/**
+	 * Bearish color.
+	 */
+	private Color colorBearish = Color.BLACK;
+	/**
+	 * Bullish color.
+	 */
+	private Color colorBullish = Color.BLACK;
 
 	/**
 	 * Most used constructor assigning one data source.
@@ -80,7 +90,40 @@ public abstract class DataPlotter {
 	public abstract double[] getValues(int index);
 
 	/**
+	 * Returns the bearish color.
+	 *
+	 * @return The bearish color.
+	 */
+	public Color getColorBearish() {
+		return colorBearish;
+	}
+	/**
+	 * Returns the bullish color.
+	 *
+	 * @return The bullish color.
+	 */
+	public Color getColorBullish() {
+		return colorBullish;
+	}
+	/**
+	 * Set the bearish color.
+	 *
+	 * @param colorBearish The bearish color.
+	 */
+	public void setColorBearish(Color colorBearish) {
+		this.colorBearish = colorBearish;
+	}
+	/**
+	 * Set the bullish color.
+	 *
+	 * @param colorBullish The bullish color.
+	 */
+	public void setColorBullish(Color colorBullish) {
+		this.colorBullish = colorBullish;
+	}
+	/**
 	 * Perform the plot.
+	 *
 	 * @param context The plot context.
 	 */
 	public abstract void plot(PlotContext context);

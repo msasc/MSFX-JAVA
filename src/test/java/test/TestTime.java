@@ -18,9 +18,8 @@ package test;
 
 import msfx.lib.util.Strings;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.math.BigDecimal;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 
 public class TestTime {
@@ -37,5 +36,8 @@ public class TestTime {
 //		System.out.println(duration.toSecondsPart());
 		System.out.println(Strings.toString(duration, false, true));
 		System.out.println(System.currentTimeMillis());
+
+		System.out.println(new BigDecimal("0.0001").scale());
+
 	}
 }

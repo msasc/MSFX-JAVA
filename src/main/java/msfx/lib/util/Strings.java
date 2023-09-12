@@ -208,6 +208,38 @@ public class Strings {
 	}
 
 	/**
+	 * Count the number of leading matches of the character within the string.
+	 *
+	 * @param source The source string.
+	 * @param search The character to search.
+	 * @return The number of leading matches.
+	 */
+	public static int countMatchesLeading(String source, char search) {
+		int matches = 0;
+		for (int i = 0; i < source.length(); i++) {
+			if (source.charAt(i) != search) break;
+			matches++;
+		}
+		return matches;
+	}
+
+	/**
+	 * Count the number of trailing matches of the character within the string.
+	 *
+	 * @param source The source string.
+	 * @param search The character to search.
+	 * @return The number of trailing matches.
+	 */
+	public static int countMatchesTrailing(String source, char search) {
+		int matches = 0;
+		for (int i = source.length() - 1; i >= 0; i--) {
+			if (source.charAt(i) != search) break;
+			matches++;
+		}
+		return matches;
+	}
+
+	/**
 	 * Returns the first string not null, or an empty string.
 	 *
 	 * @param strings The list of strings.
