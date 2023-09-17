@@ -36,14 +36,16 @@ public class TestChart extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 
-		FileChooser fileChooser = new FileChooser();
-		fileChooser.setTitle("Select an VChart data source");
-		fileChooser.getExtensionFilters().add(
-				new FileChooser.ExtensionFilter("Text data files", "*.txt"));
-		fileChooser.setInitialDirectory(new File("D:/Development/Databases/VChart"));
-		File file = fileChooser.showOpenDialog(stage);
-		if (file == null) System.exit(1);
-		if (file != null) System.out.println(file);
+//		FileChooser fileChooser = new FileChooser();
+//		fileChooser.setTitle("Select an VChart data source");
+//		fileChooser.getExtensionFilters().add(
+//				new FileChooser.ExtensionFilter("Text data files", "*.txt"));
+//		fileChooser.setInitialDirectory(new File("D:/Development/Databases/VChart"));
+//		File file = fileChooser.showOpenDialog(stage);
+//		if (file == null) System.exit(1);
+//		if (file != null) System.out.println(file);
+
+		File file = new File("D:\\Development\\Databases\\VChart\\ID_DAX_EUR_DAY_001.txt");
 
 		VChartSource src = new VChartSource(file);
 
@@ -53,12 +55,14 @@ public class TestChart extends Application {
 
 		ChartFrame frame = new ChartFrame();
 		frame.addPlotFrame(plotter);
-		frame.setIndexesRangeFromEnd(100);
+		frame.setIndexesRangeFromEnd(500);
 
 		Scene scene = new Scene(frame.getPane());
 		stage.setTitle("Test chart");
 		stage.setScene(scene);
 		stage.centerOnScreen();
+		stage.setHeight(500);
+		stage.setWidth(500);
 		stage.show();
 	}
 

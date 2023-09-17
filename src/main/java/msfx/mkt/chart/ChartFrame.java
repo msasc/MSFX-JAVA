@@ -23,12 +23,15 @@ import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.control.ToolBar;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Path;
 import msfx.lib.util.Numbers;
 import msfx.mkt.DataSource;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -410,7 +413,7 @@ public class ChartFrame {
 	 * of its correspondent plot area. The horizontal axis and the plot info area have no margins
 	 * defined by these insets.
 	 */
-	private Insets insets = new Insets(0.05, 0.05, 0.05, 0.05);
+	private Insets insets = new Insets(0.02, 0.02, 0.02, 0.02);
 	/**
 	 * Right margin.
 	 */
@@ -445,9 +448,156 @@ public class ChartFrame {
 		xAxis = new XAxis();
 		pane = new BorderPane();
 
+		/*
+		 * Size listener lo launch the plot when the size changes.
+		 */
+
 		SizeListener sizeListener = new SizeListener();
 		pane.widthProperty().addListener(sizeListener);
 		pane.heightProperty().addListener(sizeListener);
+
+		/*
+		 * Flow pane on top ti handle buttons to move start, end, left and right,
+		 * and o zoom in and out.
+		 */
+
+		FlowPane flowPane = new FlowPane();
+		BorderStroke borderStroke = new BorderStroke(
+				Color.BLACK,
+				BorderStrokeStyle.SOLID,
+				CornerRadii.EMPTY,
+				new BorderWidths(0.0, 0.0, 0.5, 0.0));
+		flowPane.setBorder(new Border(borderStroke));
+
+		flowPane.getChildren().add(getButtonZoomIn(32, 24, 12, 8));
+		flowPane.getChildren().add(getButtonZoomOut(32, 24, 12, 8));
+
+
+
+
+		pane.setTop(flowPane);
+	}
+
+	private Pane getButtonZoomIn(double width, double height, double horzMarg, double vertMarg) {
+		Pane pane = getButtonPane(width, height);
+
+		double horzLine = width - (horzMarg * 2);
+		double vertLine = height - (vertMarg * 2);
+
+		double xh1 = horzMarg;
+		double yh1 = height / 2;
+		double xh2 = xh1 + horzLine;
+		double yh2 = yh1;
+
+		double xv1 = width / 2;
+		double yv1 = vertMarg;
+		double xv2 = xv1;
+		double yv2 = yv1 + vertLine;
+
+		Line line;
+
+		line = new Line(xh1, yh1, xh2, yh2);
+		line.setStrokeWidth(0.5);
+		pane.getChildren().add(line);
+
+		line = new Line(xv1, yv1, xv2, yv2);
+		line.setStrokeWidth(0.5);
+		pane.getChildren().add(line);
+		return pane;
+	}
+
+	private Pane getButtonZoomOut(double width, double height, double horzMarg, double vertMarg) {
+		Pane pane = getButtonPane(width, height);
+
+		double horzLine = width - (horzMarg * 2);
+
+		double xh1 = horzMarg;
+		double yh1 = height / 2;
+		double xh2 = xh1 + horzLine;
+		double yh2 = yh1;
+
+		Line line = new Line(xh1, yh1, xh2, yh2);
+		line.setStrokeWidth(0.5);
+		pane.getChildren().add(line);
+
+		return pane;
+	}
+
+	private Pane getButtonPane(double width, double height) {
+		Pane pane = new Pane();
+		pane.setPrefSize(width, height);
+		pane.setOnMouseEntered(ev -> {
+			pane.setBackground(Background.fill(Color.LIGHTGRAY));
+		});
+		pane.setOnMousePressed(ev -> {
+			pane.setBackground(Background.fill(Color.GRAY));
+		});
+		pane.setOnMouseReleased(ev -> {
+			boolean inThePane = ev.getX() >= 0 && ev.getX() <= pane.getWidth();
+			inThePane &= ev.getY() >= 0 && ev.getY() <= pane.getHeight();
+			if (inThePane) {
+				pane.setBackground(Background.fill(Color.LIGHTGRAY));
+			} else {
+				pane.setBackground(Background.fill(Color.WHITE));
+			}
+		});
+		pane.setOnMouseExited(ev -> {
+			pane.setBackground(Background.fill(Color.WHITE));
+		});
+		return pane;
+	}
+
+	private Pane getPaneCanvas() {
+		Pane pane = new Pane();
+		pane.setOnMouseEntered(ev -> {
+			pane.setBackground(Background.fill(Color.LIGHTGRAY));
+		});
+		pane.setOnMousePressed(ev -> {
+			pane.setBackground(Background.fill(Color.GRAY));
+		});
+		pane.setOnMouseReleased(ev -> {
+			boolean inThePane = ev.getX() >= 0 && ev.getX() <= pane.getWidth();
+			inThePane &= ev.getY() >= 0 && ev.getY() <= pane.getHeight();
+			if (inThePane) {
+				pane.setBackground(Background.fill(Color.LIGHTGRAY));
+			} else {
+				pane.setBackground(Background.fill(Color.WHITE));
+			}
+		});
+		pane.setOnMouseExited(ev -> {
+			pane.setBackground(Background.fill(Color.WHITE));
+		});
+		pane.setOnMouseClicked(ev -> {
+			System.out.println("Clicked");
+		});
+
+		double width = 32;
+		double height = 24;
+		double lineLength = 8;
+		double marginHorz = (width - lineLength) / 2;
+		double marginVert = (height - lineLength) / 2;
+
+		double xh1 = marginHorz;
+		double yh1 = height / 2;
+		double xh2 = xh1 + lineLength;
+		double yh2 = yh1;
+
+		double xv1 = width / 2;
+		double yv1 = marginVert;
+		double xv2 = xv1;
+		double yv2 = yv1 + lineLength;
+
+		pane.setPrefSize(width, height);
+
+		Line line = new Line(xh1, yh1, xh2, yh2);
+		line.setStrokeWidth(0.5);
+		pane.getChildren().add(line);
+
+		line = new Line(xv1, yv1, xv2, yv2);
+		line.setStrokeWidth(0.5);
+		pane.getChildren().add(line);
+
+		return pane;
 	}
 
 	/**
@@ -532,7 +682,8 @@ public class ChartFrame {
 	public void plot() {
 		for (PlotFrame plotFrame : plotFrames) {
 			plotFrame.calculateMinMaxValues(plotData.getStartIndex(), plotData.getEndIndex());
-			plotFrame.calculateVerticalMargins();;
+			plotFrame.calculateVerticalMargins();
+			;
 		}
 		calculateHorizontalMargins();
 		for (PlotFrame plotFrame : plotFrames) {
