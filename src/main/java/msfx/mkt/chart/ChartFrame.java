@@ -119,7 +119,10 @@ public class ChartFrame {
 			minimumValue = Numbers.MAX_DOUBLE;
 			maximumValue = Numbers.MIN_DOUBLE;
 
+			int dataSize = plotData.getDataSize();
 			for (int index = startIndex; index <= endIndex; index++) {
+				if (index < 0) continue;
+				if (index >= dataSize) continue;
 				for (DataPlotter plotter : plotters) {
 					double[] values = plotter.getValues(index);
 					for (double value : values) {
@@ -438,6 +441,10 @@ public class ChartFrame {
 
 	private final BorderPane pane;
 
+	private final double buttonWidth = 32;
+	private final double buttonHeight = 24;
+	private final double buttonFrame = 8;
+
 	/**
 	 * Constructor.
 	 */
@@ -469,63 +476,171 @@ public class ChartFrame {
 				new BorderWidths(0.0, 0.0, 0.5, 0.0));
 		flowPane.setBorder(new Border(borderStroke));
 
-		flowPane.getChildren().add(getButtonZoomIn(32, 24, 12, 8));
-		flowPane.getChildren().add(getButtonZoomOut(32, 24, 12, 8));
+		Pane buttZoomIn = getButtonZoomIn();
+		Pane buttZoomOut = getButtonZoomOut();
+		Pane buttMoveStart = getButtonMoveStart();
+		Pane buttMoveEnd = getButtonMoveEnd();
+		Pane buttMoveLeft = getButtonMoveLeft();
+		Pane buttMoveRight = getButtonMoveRight();
 
+		flowPane.getChildren().add(buttZoomIn);
+		flowPane.getChildren().add(buttZoomOut);
+		flowPane.getChildren().add(buttMoveStart);
+		flowPane.getChildren().add(buttMoveEnd);
+		flowPane.getChildren().add(buttMoveLeft);
+		flowPane.getChildren().add(buttMoveRight);
 
-
+		buttMoveStart.setOnMouseClicked(ev -> {
+			plotData.moveStart();
+			Platform.runLater(() -> { plot(); });
+		});
+		buttMoveEnd.setOnMouseClicked(ev -> {
+			plotData.moveEnd();
+			Platform.runLater(() -> { plot(); });
+		});
+		buttMoveLeft.setOnMouseClicked(ev -> {
+			plotData.scroll(-0.05);
+			Platform.runLater(() -> { plot(); });
+		});
+		buttMoveRight.setOnMouseClicked(ev -> {
+			plotData.scroll(0.05);
+			Platform.runLater(() -> { plot(); });
+		});
 
 		pane.setTop(flowPane);
 	}
 
-	private Pane getButtonZoomIn(double width, double height, double horzMarg, double vertMarg) {
-		Pane pane = getButtonPane(width, height);
+	private Pane getButtonZoomIn() {
 
-		double horzLine = width - (horzMarg * 2);
-		double vertLine = height - (vertMarg * 2);
+		Pane pane = getButtonPane();
 
-		double xh1 = horzMarg;
-		double yh1 = height / 2;
-		double xh2 = xh1 + horzLine;
+		double margHorz = (buttonWidth - buttonFrame) / 2;
+		double margVert = (buttonHeight - buttonFrame) / 2;
+
+		double xh1 = margHorz;
+		double yh1 = buttonHeight / 2;
+		double xh2 = xh1 + buttonFrame;
 		double yh2 = yh1;
 
-		double xv1 = width / 2;
-		double yv1 = vertMarg;
+		double xv1 = buttonWidth / 2;
+		double yv1 = margVert;
 		double xv2 = xv1;
-		double yv2 = yv1 + vertLine;
+		double yv2 = yv1 + buttonFrame;
 
-		Line line;
+		pane.getChildren().add(getButtonLine(xh1, yh1, xh2, yh2));
+		pane.getChildren().add(getButtonLine(xv1, yv1, xv2, yv2));
 
-		line = new Line(xh1, yh1, xh2, yh2);
-		line.setStrokeWidth(0.5);
-		pane.getChildren().add(line);
-
-		line = new Line(xv1, yv1, xv2, yv2);
-		line.setStrokeWidth(0.5);
-		pane.getChildren().add(line);
 		return pane;
 	}
+	private Pane getButtonZoomOut() {
 
-	private Pane getButtonZoomOut(double width, double height, double horzMarg, double vertMarg) {
-		Pane pane = getButtonPane(width, height);
+		Pane pane = getButtonPane();
 
-		double horzLine = width - (horzMarg * 2);
+		double margHorz = (buttonWidth - buttonFrame) / 2;
 
-		double xh1 = horzMarg;
-		double yh1 = height / 2;
-		double xh2 = xh1 + horzLine;
+		double xh1 = margHorz;
+		double yh1 = buttonHeight / 2;
+		double xh2 = xh1 + buttonFrame;
 		double yh2 = yh1;
 
-		Line line = new Line(xh1, yh1, xh2, yh2);
-		line.setStrokeWidth(0.5);
-		pane.getChildren().add(line);
+		pane.getChildren().add(getButtonLine(xh1, yh1, xh2, yh2));
+
+		return pane;
+	}
+	private Pane getButtonMoveStart() {
+
+		Pane pane = getButtonPane();
+
+		double margHorz = (buttonWidth - buttonFrame) / 2;
+		double margVert = (buttonHeight - buttonFrame) / 2;
+
+		double xh1 = margHorz;
+		double yh1 = buttonHeight / 2;
+		double xh2 = xh1 + buttonFrame;
+		double yh2 = yh1;
+
+		double xv1 = buttonWidth / 2;
+		double yv1 = margVert;
+		double xv2 = xv1;
+		double yv2 = yv1 + buttonFrame;
+
+		pane.getChildren().add(getButtonLine(xh1, yh1, xv1, yv1));
+		pane.getChildren().add(getButtonLine(xh1, yh1, xv2, yv2));
+		pane.getChildren().add(getButtonLine(xv1, yh1, xh2, yv1));
+		pane.getChildren().add(getButtonLine(xv1, yh1, xh2, yv2));
+
+		return pane;
+	}
+	private Pane getButtonMoveEnd() {
+
+		Pane pane = getButtonPane();
+
+		double margHorz = (buttonWidth - buttonFrame) / 2;
+		double margVert = (buttonHeight - buttonFrame) / 2;
+
+		double xh1 = margHorz;
+		double yh1 = buttonHeight / 2;
+		double xh2 = xh1 + buttonFrame;
+		double yh2 = yh1;
+
+		double xv1 = buttonWidth / 2;
+		double yv1 = margVert;
+		double xv2 = xv1;
+		double yv2 = yv1 + buttonFrame;
+
+		pane.getChildren().add(getButtonLine(xv1, yv1, xh2, yh1));
+		pane.getChildren().add(getButtonLine(xh1, yv1, xv1, yh1));
+		pane.getChildren().add(getButtonLine(xv1, yv2, xh2, yh1));
+		pane.getChildren().add(getButtonLine(xh1, yv2, xv2, yh1));
+
+		return pane;
+	}
+	private Pane getButtonMoveLeft() {
+
+		Pane pane = getButtonPane();
+
+		double margHorz = (buttonWidth - buttonFrame) / 2;
+		double margVert = (buttonHeight - buttonFrame) / 2;
+		double frameStep = buttonFrame / 4;
+
+		double x1, y1, x2, y2;
+
+		x1 = margHorz + frameStep;
+		y1 = buttonHeight / 2;
+		x2 = margHorz + (frameStep * 3);
+		y2 = margVert;
+		pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
+
+		y2 = margVert + buttonFrame;
+		pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
+
+		return pane;
+	}
+	private Pane getButtonMoveRight() {
+
+		Pane pane = getButtonPane();
+
+		double margHorz = (buttonWidth - buttonFrame) / 2;
+		double margVert = (buttonHeight - buttonFrame) / 2;
+		double frameStep = buttonFrame / 4;
+
+		double x1, y1, x2, y2;
+
+		x1 = margHorz + (frameStep * 3);
+		y1 = buttonHeight / 2;
+		x2 = margHorz + frameStep;
+		y2 = margVert;
+		pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
+
+		y2 = margVert + buttonFrame;
+		pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
 
 		return pane;
 	}
 
-	private Pane getButtonPane(double width, double height) {
+	private Pane getButtonPane() {
 		Pane pane = new Pane();
-		pane.setPrefSize(width, height);
+		pane.setPrefSize(buttonWidth, buttonHeight);
 		pane.setOnMouseEntered(ev -> {
 			pane.setBackground(Background.fill(Color.LIGHTGRAY));
 		});
@@ -546,58 +661,10 @@ public class ChartFrame {
 		});
 		return pane;
 	}
-
-	private Pane getPaneCanvas() {
-		Pane pane = new Pane();
-		pane.setOnMouseEntered(ev -> {
-			pane.setBackground(Background.fill(Color.LIGHTGRAY));
-		});
-		pane.setOnMousePressed(ev -> {
-			pane.setBackground(Background.fill(Color.GRAY));
-		});
-		pane.setOnMouseReleased(ev -> {
-			boolean inThePane = ev.getX() >= 0 && ev.getX() <= pane.getWidth();
-			inThePane &= ev.getY() >= 0 && ev.getY() <= pane.getHeight();
-			if (inThePane) {
-				pane.setBackground(Background.fill(Color.LIGHTGRAY));
-			} else {
-				pane.setBackground(Background.fill(Color.WHITE));
-			}
-		});
-		pane.setOnMouseExited(ev -> {
-			pane.setBackground(Background.fill(Color.WHITE));
-		});
-		pane.setOnMouseClicked(ev -> {
-			System.out.println("Clicked");
-		});
-
-		double width = 32;
-		double height = 24;
-		double lineLength = 8;
-		double marginHorz = (width - lineLength) / 2;
-		double marginVert = (height - lineLength) / 2;
-
-		double xh1 = marginHorz;
-		double yh1 = height / 2;
-		double xh2 = xh1 + lineLength;
-		double yh2 = yh1;
-
-		double xv1 = width / 2;
-		double yv1 = marginVert;
-		double xv2 = xv1;
-		double yv2 = yv1 + lineLength;
-
-		pane.setPrefSize(width, height);
-
-		Line line = new Line(xh1, yh1, xh2, yh2);
+	private Line getButtonLine(double x1, double y1, double x2, double y2) {
+		Line line = new Line(x1, y1, x2, y2);
 		line.setStrokeWidth(0.5);
-		pane.getChildren().add(line);
-
-		line = new Line(xv1, yv1, xv2, yv2);
-		line.setStrokeWidth(0.5);
-		pane.getChildren().add(line);
-
-		return pane;
+		return line;
 	}
 
 	/**

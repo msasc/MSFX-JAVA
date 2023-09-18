@@ -245,7 +245,7 @@ public class PlotData {
 	public void scroll(double factor) {
 
 		int periods = endIndex - startIndex + 1;
-		int toScroll = Numbers.getBigDecimal(getDataSize() * factor, 0).intValue();
+		int toScroll = Numbers.getBigDecimal(periods * factor, 0).intValue();
 
 		/* Scroll to the origin. */
 		if (toScroll < 0) {
@@ -258,5 +258,17 @@ public class PlotData {
 			endIndex += toScroll;
 			startIndex = endIndex - periods + 1;
 		}
+	}
+
+	public void moveStart() {
+		int periods = endIndex - startIndex + 1;
+		startIndex = 0;
+		endIndex = Math.min(startIndex + periods - 1, getDataSize() - 1);
+	}
+
+	public void moveEnd() {
+		int periods = endIndex - startIndex + 1;
+		endIndex = getDataSize() - 1;
+		startIndex = Math.max(endIndex - periods + 1, 0);
 	}
 }

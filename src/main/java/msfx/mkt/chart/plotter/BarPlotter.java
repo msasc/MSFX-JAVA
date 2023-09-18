@@ -79,12 +79,16 @@ public class BarPlotter extends DataPlotter {
 		 */
 		int startIndex = context.getPlotData().getStartIndex();
 		int endIndex = context.getPlotData().getEndIndex();
+		int dataSize = context.getPlotData().getDataSize();
 		double periods = endIndex - startIndex + 1;
 		double marginRight = context.getMarginRight();
 		double marginLeft = context.getMarginLeft();
 		double periodWidth = (width - marginLeft - marginRight) / periods;
 
 		for (int index = startIndex; index <= endIndex; index++) {
+
+			if (index < 0) continue;
+			if (index >= dataSize) continue;
 
 			/*
 			 * Get the data index that corresponds to the period index and, if there is no data for
@@ -127,6 +131,7 @@ public class BarPlotter extends DataPlotter {
 			/*
 			 * Do plot.
 			 */
+			gc.setLineWidth(1.0);
 			gc.setStroke(color);
 			gc.strokeLine(x_center, y_high, x_center, y_low);
 			if (armLen > 0) {
