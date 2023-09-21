@@ -23,17 +23,16 @@ import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.ToolBar;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Path;
 import msfx.lib.util.Numbers;
 import msfx.mkt.DataSource;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * The chart component that manages the vertical layout of several plot areas and a horizontal axis
@@ -411,6 +410,50 @@ public class ChartFrame {
 	}
 
 	/**
+	 * Timer task to refresh and plot when the buttons move left or right and zoom in or out are
+	 * hold pressed.
+	 */
+	private class TaskRefresh extends TimerTask {
+		/**
+		 * The runnable that performs the task.
+		 */
+		private Runnable task;
+		/**
+		 * Constructor.
+		 *
+		 * @param task The runnable task to perform.
+		 */
+		private TaskRefresh(Runnable task) {
+			this.task = task;
+		}
+		/**
+		 * Do run.
+		 */
+		@Override
+		public void run() {
+			task.run();
+			Platform.runLater(() -> { plot(); });
+		}
+	}
+
+	private class TimerPack {
+		private Timer timer;
+		private TimerTask task;
+		private TimerPack(TimerTask task) {
+			this.task = task;
+			this.timer = new Timer(true);
+			this.timer.schedule(this.task, refreshPeriod, refreshPeriod);
+		}
+		private void terminate() {
+			task.cancel();
+			timer.purge();
+			timer.cancel();
+			timer = null;
+			task = null;
+		}
+	}
+
+	/**
 	 * The insets, as a unitary factor, that define the margins of the panes. The plot area has a
 	 * margin all around. The vertical axis has a top and bottom margin, that are the as the ones
 	 * of its correspondent plot area. The horizontal axis and the plot info area have no margins
@@ -439,11 +482,28 @@ public class ChartFrame {
 	 */
 	private final XAxis xAxis;
 
+	/**
+	 * The border pane that contains all the components of the chart frame.
+	 */
 	private final BorderPane pane;
 
+	/**
+	 * Width of the top toolbar pane buttons.
+	 */
 	private final double buttonWidth = 32;
+	/**
+	 * height of the top toolbar pane buttons.
+	 */
 	private final double buttonHeight = 24;
+	/**
+	 * Side of the internal frame of the button where the icon is drawn.
+	 */
 	private final double buttonFrame = 8;
+
+	/**
+	 * Refresh period in millis.
+	 */
+	private int refreshPeriod = 100;
 
 	/**
 	 * Constructor.
@@ -464,8 +524,8 @@ public class ChartFrame {
 		pane.heightProperty().addListener(sizeListener);
 
 		/*
-		 * Flow pane on top ti handle buttons to move start, end, left and right,
-		 * and o zoom in and out.
+		 * Flow pane on top to handle buttons to move start, end, left and right,
+		 * and to zoom in and out.
 		 */
 
 		FlowPane flowPane = new FlowPane();
@@ -476,40 +536,67 @@ public class ChartFrame {
 				new BorderWidths(0.0, 0.0, 0.5, 0.0));
 		flowPane.setBorder(new Border(borderStroke));
 
-		Pane buttZoomIn = getButtonZoomIn();
-		Pane buttZoomOut = getButtonZoomOut();
-		Pane buttMoveStart = getButtonMoveStart();
-		Pane buttMoveEnd = getButtonMoveEnd();
-		Pane buttMoveLeft = getButtonMoveLeft();
-		Pane buttMoveRight = getButtonMoveRight();
+		/*
+		 * Add the buttons to zoom in and out, and to move start, end, left and right.
+		 */
 
-		flowPane.getChildren().add(buttZoomIn);
-		flowPane.getChildren().add(buttZoomOut);
-		flowPane.getChildren().add(buttMoveStart);
-		flowPane.getChildren().add(buttMoveEnd);
-		flowPane.getChildren().add(buttMoveLeft);
-		flowPane.getChildren().add(buttMoveRight);
+		Pane buttonZoomIn = getButtonZoomIn();
+		Pane buttonZoomOut = getButtonZoomOut();
+		Pane buttonMoveLeft = getButtonMoveLeft();
+		Pane buttonMoveRight = getButtonMoveRight();
+		Pane buttonMoveStart = getButtonMoveStart();
+		Pane buttonMoveEnd = getButtonMoveEnd();
 
-		buttMoveStart.setOnMouseClicked(ev -> {
+		flowPane.getChildren().add(buttonZoomIn);
+		flowPane.getChildren().add(buttonZoomOut);
+		flowPane.getChildren().add(buttonMoveLeft);
+		flowPane.getChildren().add(buttonMoveRight);
+		flowPane.getChildren().add(buttonMoveStart);
+		flowPane.getChildren().add(buttonMoveEnd);
+
+		pane.setTop(flowPane);
+
+		/*
+		 * Configure the buttons to move start and end with a mouse click.
+		 */
+
+		buttonMoveStart.setOnMouseClicked(ev -> {
 			plotData.moveStart();
 			Platform.runLater(() -> { plot(); });
 		});
-		buttMoveEnd.setOnMouseClicked(ev -> {
+		buttonMoveEnd.setOnMouseClicked(ev -> {
 			plotData.moveEnd();
 			Platform.runLater(() -> { plot(); });
 		});
-		buttMoveLeft.setOnMouseClicked(ev -> {
-			plotData.scroll(-0.05);
-			Platform.runLater(() -> { plot(); });
-		});
-		buttMoveRight.setOnMouseClicked(ev -> {
-			plotData.scroll(0.05);
-			Platform.runLater(() -> { plot(); });
-		});
 
-		pane.setTop(flowPane);
+		/*
+		 * Configure the buttons move left and right and zoom in and out, to start moving or
+		 * zooming in ticks while the button is pressed.
+		 */
+
+		setOnButtonPressed(buttonZoomIn, () -> plotData.zoom(-0.05));
+		setOnButtonPressed(buttonZoomOut, () -> plotData.zoom(0.05));
+		setOnButtonPressed(buttonMoveLeft, () -> plotData.scroll(-0.05));
+		setOnButtonPressed(buttonMoveRight, () -> plotData.scroll(0.05));
+
+		setOnButtonReleased(buttonZoomIn);
+		setOnButtonReleased(buttonZoomOut);
+		setOnButtonReleased(buttonMoveLeft);
+		setOnButtonReleased(buttonMoveRight);
 	}
 
+	private void setOnButtonPressed(Pane button, Runnable action) {
+		button.setOnMousePressed(ev -> {
+			TimerPack pack = new TimerPack(new TaskRefresh(action));
+			button.setUserData(pack);
+		});
+	}
+	private void setOnButtonReleased(Pane button) {
+		button.setOnMouseReleased(ev -> {
+			TimerPack pack = (TimerPack) button.getUserData();
+			if (pack != null) pack.terminate();
+		});
+	}
 	private Pane getButtonZoomIn() {
 
 		Pane pane = getButtonPane();

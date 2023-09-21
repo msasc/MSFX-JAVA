@@ -16,7 +16,6 @@
 
 package msfx.mkt.chart.plotter;
 
-import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import msfx.lib.util.Numbers;
@@ -25,7 +24,6 @@ import msfx.mkt.DataSource;
 import msfx.mkt.chart.DataPlotter;
 import msfx.mkt.chart.PlotContext;
 
-import java.lang.reflect.Constructor;
 import java.util.List;
 
 /**
@@ -109,7 +107,7 @@ public class BarPlotter extends DataPlotter {
 			double y_high = context.getCoordinateY(values[Data.HIGH]);
 			double y_low = context.getCoordinateY(values[Data.LOW]);
 			double y_close = context.getCoordinateY(values[Data.CLOSE]);
-			boolean bullish = y_close >= y_open;
+			boolean bullish = (values[Data.CLOSE] >= values[Data.OPEN]);
 			Color color = bullish ? getColorBullish() : getColorBearish();
 
 			/*

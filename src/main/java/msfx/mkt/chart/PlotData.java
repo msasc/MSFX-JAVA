@@ -260,6 +260,29 @@ public class PlotData {
 		}
 	}
 
+	public void zoom(double factor) {
+
+		int size = getDataSize();
+		int periods = endIndex - startIndex + 1;
+		int toZoom = Math.abs(Numbers.getBigDecimal(periods * factor / 2, 0).intValue());
+
+		/* Zoom in. */
+		if (factor < 0) {
+			startIndex += toZoom;
+			endIndex -= toZoom;
+			if (startIndex >= size) startIndex = size - 1;
+			if (endIndex < 0) endIndex = 0;
+		}
+
+		/* Zoom out. */
+		if (factor > 0) {
+			startIndex -= toZoom;
+			endIndex += toZoom;
+			if (startIndex < 0) startIndex = 0;
+			if (endIndex >= size) endIndex = size - 1;
+		}
+	}
+
 	public void moveStart() {
 		int periods = endIndex - startIndex + 1;
 		startIndex = 0;
