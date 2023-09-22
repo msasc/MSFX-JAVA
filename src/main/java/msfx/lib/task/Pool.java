@@ -38,7 +38,8 @@ public class Pool {
 		 * Constructor.
 		 */
 		protected ThreadTask(ForkJoinPool pool) {
-			super(pool); int pad = Numbers.getDigits(pool.getParallelism());
+			super(pool);
+			int pad = Numbers.getDigits(pool.getParallelism());
 			String index = Integer.toString(getPoolIndex());
 			setName(name + "-THREAD-" + Strings.leftPad(index, pad, "0"));
 		}
@@ -80,7 +81,9 @@ public class Pool {
 	public Pool(String name, int poolSize) {
 		if (poolSize < 1) {
 			throw new IllegalArgumentException("Invalid pool size " + poolSize);
-		} this.name = name; this.pool = new ForkJoinPool(poolSize, new ThreadFactory(), new ThreadHandler(), true);
+		}
+		this.name = name;
+		this.pool = new ForkJoinPool(poolSize, new ThreadFactory(), new ThreadHandler(), true);
 	}
 
 	/**
@@ -104,7 +107,8 @@ public class Pool {
 	 * @param asGroup A boolean indicating whether the collection of tasks is a group.
 	 */
 	public void execute(Collection<? extends Task> tasks, boolean asGroup) {
-		if (asGroup) tasks.forEach(task -> task.setGroup(tasks)); pool.invokeAll(tasks);
+		if (asGroup) tasks.forEach(task -> task.setGroup(tasks));
+		pool.invokeAll(tasks);
 	}
 
 	/**
@@ -126,7 +130,8 @@ public class Pool {
 	 * @param asGroup A boolean indicating whether the collection of tasks is a group.
 	 */
 	public void submit(Collection<? extends Task> tasks, boolean asGroup) {
-		if (asGroup) tasks.forEach(task -> task.setGroup(tasks)); tasks.forEach(task -> pool.submit((Runnable) task));
+		if (asGroup) tasks.forEach(task -> task.setGroup(tasks));
+		tasks.forEach(task -> pool.submit((Runnable) task));
 	}
 
 	/**
@@ -143,17 +148,30 @@ public class Pool {
 	}
 
 	/**
+	 * Returns this pool targeted parallelism.
+	 *
+	 * @return Targeted parallelism.
+	 */
+	public int getParallelism() {
+		return pool.getParallelism();
+	}
+
+	/**
 	 * Wait for termination of the collection of tasks submitted.
 	 *
 	 * @param tasks The collection of tasks to wait for their termination.
 	 */
 	public static void waitForTermination(Collection<? extends Task> tasks) {
 		for (; ; ) {
-			boolean allTerminated = true; for (Task task : tasks) {
-				Thread.yield(); if (!task.hasTerminated()) {
-					allTerminated = false; break;
+			boolean allTerminated = true;
+			for (Task task : tasks) {
+				Thread.yield();
+				if (!task.hasTerminated()) {
+					allTerminated = false;
+					break;
 				}
-			} if (allTerminated) break;
+			}
+			if (allTerminated) break;
 		}
 	}
 }

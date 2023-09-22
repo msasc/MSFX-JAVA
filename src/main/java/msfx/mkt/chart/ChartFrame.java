@@ -26,6 +26,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import msfx.lib.task.Pool;
 import msfx.lib.util.Numbers;
 import msfx.mkt.DataSource;
 
@@ -305,6 +306,15 @@ public class ChartFrame {
 		}
 
 		/**
+		 * Returns a suitable pool to prepare plot calculations concurrently.
+		 *
+		 * @return The pool.
+		 */
+		public Pool getPlotPool() {
+			return plotPool;
+		}
+
+		/**
 		 * Returns the plot data.
 		 *
 		 * @return The plot data.
@@ -436,14 +446,32 @@ public class ChartFrame {
 		}
 	}
 
+	/**
+	 * Timer utility class that packs the timer and the task, it is stored in the user object of the
+	 * button, and cleaned when the button is released.
+	 */
 	private class TimerPack {
+		/**
+		 * The timer.
+		 */
 		private Timer timer;
+		/**
+		 * The timer task.
+		 */
 		private TimerTask task;
+		/**
+		 * Constructor.
+		 *
+		 * @param task The timer task.
+		 */
 		private TimerPack(TimerTask task) {
 			this.task = task;
 			this.timer = new Timer(true);
-			this.timer.schedule(this.task, refreshPeriod, refreshPeriod);
+			this.timer.schedule(this.task, refreshPeriod * 4, refreshPeriod);
 		}
+		/**
+		 * Terminate the task and the timer, called on button released.
+		 */
 		private void terminate() {
 			task.cancel();
 			timer.purge();
@@ -459,7 +487,7 @@ public class ChartFrame {
 	 * of its correspondent plot area. The horizontal axis and the plot info area have no margins
 	 * defined by these insets.
 	 */
-	private Insets insets = new Insets(0.02, 0.02, 0.02, 0.02);
+	private Insets insets = new Insets(0.05, 0.05, 0.05, 0.05);
 	/**
 	 * Right margin.
 	 */
@@ -503,7 +531,16 @@ public class ChartFrame {
 	/**
 	 * Refresh period in millis.
 	 */
-	private int refreshPeriod = 100;
+	private int refreshPeriod = 75;
+	/**
+	 * Pool parallelism for concurrent plot calculations.
+	 */
+	private int poolParallelism = 20;
+
+	/**
+	 * Pool the pass to data plotters.
+	 */
+	private Pool plotPool;
 
 	/**
 	 * Constructor.
@@ -557,22 +594,15 @@ public class ChartFrame {
 		pane.setTop(flowPane);
 
 		/*
-		 * Configure the buttons to move start and end with a mouse click.
+		 * Configure the buttons .
 		 */
 
-		buttonMoveStart.setOnMouseClicked(ev -> {
-			plotData.moveStart();
-			Platform.runLater(() -> { plot(); });
-		});
-		buttonMoveEnd.setOnMouseClicked(ev -> {
-			plotData.moveEnd();
-			Platform.runLater(() -> { plot(); });
-		});
-
-		/*
-		 * Configure the buttons move left and right and zoom in and out, to start moving or
-		 * zooming in ticks while the button is pressed.
-		 */
+		setOnButtonClicked(buttonMoveStart, () -> plotData.moveStart());
+		setOnButtonClicked(buttonMoveEnd, () -> plotData.moveEnd());
+		setOnButtonClicked(buttonZoomIn, () -> plotData.zoom(-0.05));
+		setOnButtonClicked(buttonZoomOut, () -> plotData.zoom(0.05));
+		setOnButtonClicked(buttonMoveLeft, () -> plotData.scroll(-0.05));
+		setOnButtonClicked(buttonMoveRight, () -> plotData.scroll(0.05));
 
 		setOnButtonPressed(buttonZoomIn, () -> plotData.zoom(-0.05));
 		setOnButtonPressed(buttonZoomOut, () -> plotData.zoom(0.05));
@@ -585,6 +615,12 @@ public class ChartFrame {
 		setOnButtonReleased(buttonMoveRight);
 	}
 
+	private void setOnButtonClicked(Pane button, Runnable action) {
+		button.setOnMouseClicked(ev -> {
+			action.run();
+			Platform.runLater(() -> { plot(); });
+		});
+	}
 	private void setOnButtonPressed(Pane button, Runnable action) {
 		button.setOnMousePressed(ev -> {
 			TimerPack pack = new TimerPack(new TaskRefresh(action));
@@ -834,15 +870,23 @@ public class ChartFrame {
 	}
 
 	public void plot() {
+
+		int periods = plotData.getEndIndex() - plotData.getStartIndex() + 1;
+		System.out.println(periods);
+
+		plotPool = new Pool("CHART_FRAME", poolParallelism);
+
 		for (PlotFrame plotFrame : plotFrames) {
 			plotFrame.calculateMinMaxValues(plotData.getStartIndex(), plotData.getEndIndex());
 			plotFrame.calculateVerticalMargins();
-			;
 		}
 		calculateHorizontalMargins();
 		for (PlotFrame plotFrame : plotFrames) {
 			plotFrame.plot();
 		}
+
+		plotPool.shutdown();
+		plotPool = null;
 	}
 
 }

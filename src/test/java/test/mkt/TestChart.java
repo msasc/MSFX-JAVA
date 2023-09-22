@@ -45,7 +45,7 @@ public class TestChart extends Application {
 //		if (file == null) System.exit(1);
 //		if (file != null) System.out.println(file);
 
-		File file = new File("D:\\Development\\Databases\\VChart\\ID_DAX_EUR_MIN_005.txt");
+		File file = new File("D:\\Development\\Databases\\VChart\\ID_DAX_EUR_MIN_060.txt");
 
 		VChartSource src = new VChartSource(file);
 

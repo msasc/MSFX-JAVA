@@ -244,8 +244,11 @@ public class PlotData {
 	 */
 	public void scroll(double factor) {
 
+		int size = getDataSize();
 		int periods = endIndex - startIndex + 1;
 		int toScroll = Numbers.getBigDecimal(periods * factor, 0).intValue();
+		if (toScroll == 0 && factor < 0) toScroll = -1;
+		if (toScroll == 0 && factor > 0) toScroll = 1;
 
 		/* Scroll to the origin. */
 		if (toScroll < 0) {
@@ -258,6 +261,14 @@ public class PlotData {
 			endIndex += toScroll;
 			startIndex = endIndex - periods + 1;
 		}
+
+		if (startIndex >= size) {
+			startIndex = size - 1;
+		}
+		if (endIndex < 0) {
+			endIndex = 0;
+		}
+
 	}
 
 	public void zoom(double factor) {
@@ -265,6 +276,7 @@ public class PlotData {
 		int size = getDataSize();
 		int periods = endIndex - startIndex + 1;
 		int toZoom = Math.abs(Numbers.getBigDecimal(periods * factor / 2, 0).intValue());
+		if (toZoom == 0 && factor > 0) toZoom = 1;
 
 		/* Zoom in. */
 		if (factor < 0) {

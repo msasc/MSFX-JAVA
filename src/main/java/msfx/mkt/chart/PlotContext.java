@@ -17,6 +17,7 @@
 package msfx.mkt.chart;
 
 import javafx.scene.canvas.GraphicsContext;
+import msfx.lib.task.Pool;
 import msfx.lib.util.Numbers;
 
 /**
@@ -25,6 +26,13 @@ import msfx.lib.util.Numbers;
  * @author Miquel Sas
  */
 public interface PlotContext {
+
+	/**
+	 * Returns a suitable pool to prepare plot calculations concurrently.
+	 *
+	 * @return The pool.
+	 */
+	Pool getPlotPool();
 
 	/**
 	 * Returns the plot data that provides the range of data indexes to as well as the corresponding
