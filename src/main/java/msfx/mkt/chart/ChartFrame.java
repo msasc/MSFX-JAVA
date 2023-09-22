@@ -527,6 +527,13 @@ public class ChartFrame {
 	 * Side of the internal frame of the button where the icon is drawn.
 	 */
 	private final double buttonFrame = 8;
+	/**
+	 * Width of the viewport that shows the relative position of the visible data. Note that the
+	 * total width of the bar that shows the relative position of the visible data is three times
+	 * the viewport width, and to compute the total width of the pane we have to add the normal
+	 * button frame margins.
+	 */
+	private final double viewportWidth = 128;
 
 	/**
 	 * Refresh period in millis.
@@ -535,7 +542,7 @@ public class ChartFrame {
 	/**
 	 * Pool parallelism for concurrent plot calculations.
 	 */
-	private int poolParallelism = 20;
+	private int parallelism = 20;
 
 	/**
 	 * Pool the pass to data plotters.
@@ -590,6 +597,7 @@ public class ChartFrame {
 		flowPane.getChildren().add(buttonMoveRight);
 		flowPane.getChildren().add(buttonMoveStart);
 		flowPane.getChildren().add(buttonMoveEnd);
+		flowPane.getChildren().add(getViewPortCanvas());
 
 		pane.setTop(flowPane);
 
@@ -615,18 +623,35 @@ public class ChartFrame {
 		setOnButtonReleased(buttonMoveRight);
 	}
 
+	/**
+	 * Helper to configure the clicked event.
+	 *
+	 * @param button The button.
+	 * @param action The action perform.
+	 */
 	private void setOnButtonClicked(Pane button, Runnable action) {
 		button.setOnMouseClicked(ev -> {
 			action.run();
 			Platform.runLater(() -> { plot(); });
 		});
 	}
+	/**
+	 * Helper to configure the pressed event.
+	 *
+	 * @param button The button.
+	 * @param action The action.
+	 */
 	private void setOnButtonPressed(Pane button, Runnable action) {
 		button.setOnMousePressed(ev -> {
 			TimerPack pack = new TimerPack(new TaskRefresh(action));
 			button.setUserData(pack);
 		});
 	}
+	/**
+	 * Helper to configure the released event.
+	 *
+	 * @param button The button
+	 */
 	private void setOnButtonReleased(Pane button) {
 		button.setOnMouseReleased(ev -> {
 			TimerPack pack = (TimerPack) button.getUserData();
@@ -635,7 +660,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonZoomIn() {
 
-		Pane pane = getButtonPane();
+		Pane pane = getButtonPane("ZOOM-IN");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -657,7 +682,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonZoomOut() {
 
-		Pane pane = getButtonPane();
+		Pane pane = getButtonPane("ZOOM-OUT");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 
@@ -672,7 +697,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonMoveStart() {
 
-		Pane pane = getButtonPane();
+		Pane pane = getButtonPane("MOVE-START");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -696,7 +721,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonMoveEnd() {
 
-		Pane pane = getButtonPane();
+		Pane pane = getButtonPane("MOVE-END");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -720,7 +745,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonMoveLeft() {
 
-		Pane pane = getButtonPane();
+		Pane pane = getButtonPane("MOVE-LEFT");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -741,7 +766,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonMoveRight() {
 
-		Pane pane = getButtonPane();
+		Pane pane = getButtonPane("MOVE-RIGHT");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -760,9 +785,9 @@ public class ChartFrame {
 
 		return pane;
 	}
-
-	private Pane getButtonPane() {
+	private Pane getButtonPane(String id) {
 		Pane pane = new Pane();
+		pane.setId(id);
 		pane.setPrefSize(buttonWidth, buttonHeight);
 		pane.setOnMouseEntered(ev -> {
 			pane.setBackground(Background.fill(Color.LIGHTGRAY));
@@ -788,6 +813,15 @@ public class ChartFrame {
 		Line line = new Line(x1, y1, x2, y2);
 		line.setStrokeWidth(0.5);
 		return line;
+	}
+	private Canvas getViewPortCanvas() {
+		Canvas canvas = new Canvas();
+		canvas.setId("VIEWPORT");
+		double width = (viewportWidth) + (2 * buttonFrame);
+		double height = buttonHeight;
+		canvas.setWidth(width);
+		canvas.setHeight(height);
+		return canvas;
 	}
 
 	/**
@@ -869,13 +903,12 @@ public class ChartFrame {
 		plotData.setIndexesRangeFromStart(periods);
 	}
 
+	/**
+	 * Do plot the chart components.
+	 */
 	public void plot() {
 
-		int periods = plotData.getEndIndex() - plotData.getStartIndex() + 1;
-		System.out.println(periods);
-
-		plotPool = new Pool("CHART_FRAME", poolParallelism);
-
+		plotPool = new Pool("CHART_FRAME", parallelism);
 		for (PlotFrame plotFrame : plotFrames) {
 			plotFrame.calculateMinMaxValues(plotData.getStartIndex(), plotData.getEndIndex());
 			plotFrame.calculateVerticalMargins();
@@ -884,9 +917,62 @@ public class ChartFrame {
 		for (PlotFrame plotFrame : plotFrames) {
 			plotFrame.plot();
 		}
-
 		plotPool.shutdown();
 		plotPool = null;
+
+		plotViewPort();
+	}
+
+	/**
+	 * Plot the viewport that displays the relative position of the visible data.
+	 */
+	private void plotViewPort() {
+		Canvas canvas = (Canvas) pane.lookup("#VIEWPORT");
+		GraphicsContext gc = canvas.getGraphicsContext2D();
+
+		double width = canvas.getWidth();
+		double height = canvas.getHeight();
+
+		/* Background. */
+		gc.setLineWidth(0.5);
+		gc.setFill(Color.WHITE);
+		gc.fillRect(0, 0, width, height);
+
+		double widthPlot = width - (2 * buttonFrame);
+		double heightPlot = height - (2 * buttonFrame);
+
+		/* Central rectangle that shows the total available range of data. */
+		double xd = buttonFrame;
+		double yd = buttonFrame;
+		double wd = widthPlot;
+		double hd = heightPlot;
+
+		/* Rectangle of the visible data. */
+		double dataSize = plotData.getDataSize();
+		double startIndex = plotData.getStartIndex();
+		double endIndex = plotData.getEndIndex();
+		double periods = endIndex - startIndex + 1;
+		double xv = buttonFrame + widthPlot * (startIndex / dataSize);
+		double yv = buttonFrame;
+		double wv = widthPlot * ((endIndex - startIndex + 1) / dataSize);
+		double hv = heightPlot;
+
+		if (xv + wv > xd + wd) {
+			wv = xd + wd - xv;
+		}
+		if (xv < xd) {
+			wv -= (xd - xv);
+			xv = xd;
+		}
+		if (wv < 0.5) {
+			wv = 0.5;
+		}
+
+		gc.setFill(Color.BLACK);
+		gc.fillRect(xv, yv, wv, hv);
+
+		/* Stroke the central rectangle. */
+		gc.strokeRect(xd, yd, wd, hd);
 	}
 
 }
