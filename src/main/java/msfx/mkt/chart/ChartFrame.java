@@ -20,12 +20,17 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextBoundsType;
+import javafx.scene.text.TextFlow;
 import msfx.lib.task.Pool;
 import msfx.lib.util.Numbers;
 import msfx.mkt.DataSource;
@@ -573,6 +578,7 @@ public class ChartFrame {
 		 */
 
 		FlowPane flowPane = new FlowPane();
+		flowPane.setId("FRAME-FLOW");
 		BorderStroke borderStroke = new BorderStroke(
 				Color.BLACK,
 				BorderStrokeStyle.SOLID,
@@ -599,7 +605,22 @@ public class ChartFrame {
 		flowPane.getChildren().add(buttonMoveEnd);
 		flowPane.getChildren().add(getViewPortCanvas());
 
-		pane.setTop(flowPane);
+
+		/*
+		 * Text flow pane as a text info pane.
+		 */
+		TextFlow frameInfo = new TextFlow();
+		frameInfo.setId("FRAME-INFO");
+		frameInfo.setMaxHeight(buttonHeight);
+		frameInfo.setMinHeight(buttonHeight);
+
+		Text text = new Text("Some data");
+		text.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
+		Bounds bounds = text.getLayoutBounds();
+
+		double top = (buttonHeight - bounds.getHeight()) / 2;
+		frameInfo.setPadding(new Insets(top, 10, 0, 10));
+		flowPane.getChildren().add(frameInfo);
 
 		/*
 		 * Configure the buttons .
@@ -621,6 +642,11 @@ public class ChartFrame {
 		setOnButtonReleased(buttonZoomOut);
 		setOnButtonReleased(buttonMoveLeft);
 		setOnButtonReleased(buttonMoveRight);
+
+		/*
+		 * Put the flow pane in top pane.
+		 */
+		pane.setTop(flowPane);
 	}
 
 	/**
@@ -660,7 +686,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonZoomIn() {
 
-		Pane pane = getButtonPane("ZOOM-IN");
+		Pane pane = getButtonPane("FRAME-ZOOM-IN");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -682,7 +708,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonZoomOut() {
 
-		Pane pane = getButtonPane("ZOOM-OUT");
+		Pane pane = getButtonPane("FRAME-ZOOM-OUT");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 
@@ -697,7 +723,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonMoveStart() {
 
-		Pane pane = getButtonPane("MOVE-START");
+		Pane pane = getButtonPane("FRAME-MOVE-START");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -721,7 +747,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonMoveEnd() {
 
-		Pane pane = getButtonPane("MOVE-END");
+		Pane pane = getButtonPane("FRAME-MOVE-END");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -745,7 +771,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonMoveLeft() {
 
-		Pane pane = getButtonPane("MOVE-LEFT");
+		Pane pane = getButtonPane("FRAME-MOVE-LEFT");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -766,7 +792,7 @@ public class ChartFrame {
 	}
 	private Pane getButtonMoveRight() {
 
-		Pane pane = getButtonPane("MOVE-RIGHT");
+		Pane pane = getButtonPane("FRAME-MOVE-RIGHT");
 
 		double margHorz = (buttonWidth - buttonFrame) / 2;
 		double margVert = (buttonHeight - buttonFrame) / 2;
@@ -816,7 +842,7 @@ public class ChartFrame {
 	}
 	private Canvas getViewPortCanvas() {
 		Canvas canvas = new Canvas();
-		canvas.setId("VIEWPORT");
+		canvas.setId("FRAME-VIEWPORT");
 		double width = (viewportWidth) + (2 * buttonFrame);
 		double height = buttonHeight;
 		canvas.setWidth(width);
@@ -921,13 +947,13 @@ public class ChartFrame {
 		plotPool = null;
 
 		plotViewPort();
+		plotFrameInfo();
 	}
-
 	/**
 	 * Plot the viewport that displays the relative position of the visible data.
 	 */
 	private void plotViewPort() {
-		Canvas canvas = (Canvas) pane.lookup("#VIEWPORT");
+		Canvas canvas = (Canvas) pane.lookup("#FRAME-VIEWPORT");
 		GraphicsContext gc = canvas.getGraphicsContext2D();
 
 		double width = canvas.getWidth();
@@ -973,6 +999,31 @@ public class ChartFrame {
 
 		/* Stroke the central rectangle. */
 		gc.strokeRect(xd, yd, wd, hd);
+	}
+	/**
+	 * Plot the frame info.
+	 */
+	private void plotFrameInfo() {
+		TextFlow info = (TextFlow) pane.lookup("#FRAME-INFO");
+		info.getChildren().clear();
+
+		Text textSize = new Text("Size: " + Integer.toString(plotData.getDataSize()));
+		info.getChildren().add(textSize);
+
+		info.getChildren().add(new Text("  "));
+
+		Text textPeriods = new Text("Periods: " + Integer.toString(plotData.getPeriods()));
+		info.getChildren().add(textPeriods);
+
+		info.getChildren().add(new Text("  "));
+
+		Text textStart = new Text("Start: " + Integer.toString(plotData.getStartIndex()));
+		info.getChildren().add(textStart);
+
+		info.getChildren().add(new Text("  "));
+
+		Text textEnd = new Text("End: " + Integer.toString(plotData.getEndIndex()));
+		info.getChildren().add(textEnd);
 	}
 
 }

@@ -90,6 +90,13 @@ public class PlotData {
 	public int getEndIndex() {
 		return endIndex;
 	}
+	/**
+	 * Return the number of periods determined by start and end indexes.
+	 * @return The number of periods.
+	 */
+	public int getPeriods() {
+		return endIndex - startIndex + 1;
+	}
 
 	/**
 	 * Merge data sources rebuilding data times and indexes.
@@ -243,66 +250,55 @@ public class PlotData {
 	 * @param factor The unitary factor to scroll.
 	 */
 	public void scroll(double factor) {
-
-		int size = getDataSize();
-		int periods = endIndex - startIndex + 1;
+		int periods = getPeriods();
 		int toScroll = Numbers.getBigDecimal(periods * factor, 0).intValue();
 		if (toScroll == 0 && factor < 0) toScroll = -1;
 		if (toScroll == 0 && factor > 0) toScroll = 1;
+		scroll(toScroll);
+	}
 
+	public void scroll(int toScroll) {
+		int size = getDataSize();
+		int periods = getPeriods();
 		/* Scroll to the origin. */
 		if (toScroll < 0) {
 			startIndex += toScroll;
 			endIndex = startIndex + periods - 1;
 		}
-
 		/* Scroll to the end. */
 		if (toScroll > 0) {
 			endIndex += toScroll;
 			startIndex = endIndex - periods + 1;
 		}
-
-		if (startIndex >= size) {
-			startIndex = size - 1;
-		}
-		if (endIndex < 0) {
-			endIndex = 0;
-		}
-
+		if (startIndex >= size) startIndex = size - 1;
+		if (endIndex < 0) endIndex = 0;
 	}
 
 	public void zoom(double factor) {
-
-		int size = getDataSize();
-		int periods = endIndex - startIndex + 1;
-		int toZoom = Math.abs(Numbers.getBigDecimal(periods * factor / 2, 0).intValue());
+		int periods = getPeriods();
+		int toZoom = Numbers.getBigDecimal(periods * factor / 2, 0).intValue();
 		if (toZoom == 0 && factor > 0) toZoom = 1;
+		zoom(toZoom);
+	}
 
-		/* Zoom in. */
-		if (factor < 0) {
-			startIndex += toZoom;
-			endIndex -= toZoom;
-			if (startIndex >= size) startIndex = size - 1;
-			if (endIndex < 0) endIndex = 0;
-		}
-
-		/* Zoom out. */
-		if (factor > 0) {
-			startIndex -= toZoom;
-			endIndex += toZoom;
-			if (startIndex < 0) startIndex = 0;
-			if (endIndex >= size) endIndex = size - 1;
-		}
+	public void zoom(int toZoom) {
+		startIndex -= toZoom;
+		endIndex += toZoom;
+		int size = getDataSize();
+		if (startIndex >= size) startIndex = size - 1;
+		if (endIndex < 0) endIndex = 0;
+		if (startIndex < 0) startIndex = 0;
+		if (endIndex >= size) endIndex = size - 1;
 	}
 
 	public void moveStart() {
-		int periods = endIndex - startIndex + 1;
+		int periods = getPeriods();
 		startIndex = 0;
 		endIndex = Math.min(startIndex + periods - 1, getDataSize() - 1);
 	}
 
 	public void moveEnd() {
-		int periods = endIndex - startIndex + 1;
+		int periods = getPeriods();
 		endIndex = getDataSize() - 1;
 		startIndex = Math.max(endIndex - periods + 1, 0);
 	}

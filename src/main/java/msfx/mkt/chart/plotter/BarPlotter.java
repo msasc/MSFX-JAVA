@@ -183,7 +183,7 @@ public class BarPlotter extends DataPlotter {
 		startIndex = context.getPlotData().getStartIndex();
 		endIndex = context.getPlotData().getEndIndex();
 		dataSize = context.getPlotData().getDataSize();
-		periods = endIndex - startIndex + 1;
+		periods = context.getPlotData().getPeriods();
 		marginRight = context.getMarginRight();
 		marginLeft = context.getMarginLeft();
 		periodWidth = (width - marginLeft - marginRight) / periods;
