@@ -28,10 +28,13 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.scene.text.TextFlow;
+import msfx.lib.fx.FX;
 import msfx.lib.task.Pool;
+import msfx.lib.task.Task;
 import msfx.lib.util.Numbers;
 import msfx.mkt.DataSource;
 
@@ -121,10 +124,10 @@ public class ChartFrame {
 		 */
 		private void calculateMinMaxValues(int startIndex, int endIndex) {
 
+			int dataSize = plotData.getDataSize();
 			minimumValue = Numbers.MAX_DOUBLE;
 			maximumValue = Numbers.MIN_DOUBLE;
 
-			int dataSize = plotData.getDataSize();
 			for (int index = startIndex; index <= endIndex; index++) {
 				if (index < 0) continue;
 				if (index >= dataSize) continue;
@@ -140,7 +143,6 @@ public class ChartFrame {
 					}
 				}
 			}
-
 		}
 		/**
 		 * Calculate the vertical margins.
@@ -447,7 +449,7 @@ public class ChartFrame {
 		@Override
 		public void run() {
 			task.run();
-			Platform.runLater(() -> { plot(); });
+			Platform.runLater(() -> plot());
 		}
 	}
 
@@ -555,14 +557,28 @@ public class ChartFrame {
 	private Pool plotPool;
 
 	/**
-	 * Constructor.
+	 * Global font for all texts int this chart frame.
 	 */
-	public ChartFrame() {
+	private Font textFont;
+
+	private double lastX;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param plotter The starting data plotter.
+	 */
+	public ChartFrame(DataPlotter plotter) {
 
 		plotData = new PlotData();
 		plotFrames = new ArrayList<>();
 		xAxis = new XAxis();
 		pane = new BorderPane();
+
+		textFont = new Font(10);
+
+		addPlotFrame(plotter);
+		setIndexesRangeFromEnd(500);
 
 		/*
 		 * Size listener lo launch the plot when the size changes.
@@ -605,21 +621,27 @@ public class ChartFrame {
 		flowPane.getChildren().add(buttonMoveEnd);
 		flowPane.getChildren().add(getViewPortCanvas());
 
-
 		/*
 		 * Text flow pane as a text info pane.
 		 */
+
 		TextFlow frameInfo = new TextFlow();
 		frameInfo.setId("FRAME-INFO");
 		frameInfo.setMaxHeight(buttonHeight);
 		frameInfo.setMinHeight(buttonHeight);
 
-		Text text = new Text("Some data");
-		text.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
-		Bounds bounds = text.getLayoutBounds();
+		frameInfo.getChildren().add(getText("FRAME-TEXT-SIZE", "Size: "));
+		frameInfo.getChildren().add(getText("FRAME-TEXT-SEP1", "   "));
+		frameInfo.getChildren().add(getText("FRAME-TEXT-PERIODS", "Periods: "));
+		frameInfo.getChildren().add(getText("FRAME-TEXT-SEP2", "   "));
+		frameInfo.getChildren().add(getText("FRAME-TEXT-START", "Start: "));
+		frameInfo.getChildren().add(getText("FRAME-TEXT-SEP3", "   "));
+		frameInfo.getChildren().add(getText("FRAME-TEXT-END", "End: "));
 
+		Bounds bounds = FX.getStringBounds("Some data", textFont);
 		double top = (buttonHeight - bounds.getHeight()) / 2;
 		frameInfo.setPadding(new Insets(top, 10, 0, 10));
+
 		flowPane.getChildren().add(frameInfo);
 
 		/*
@@ -646,6 +668,7 @@ public class ChartFrame {
 		/*
 		 * Put the flow pane in top pane.
 		 */
+
 		pane.setTop(flowPane);
 	}
 
@@ -658,7 +681,7 @@ public class ChartFrame {
 	private void setOnButtonClicked(Pane button, Runnable action) {
 		button.setOnMouseClicked(ev -> {
 			action.run();
-			Platform.runLater(() -> { plot(); });
+			Platform.runLater(() -> plot());
 		});
 	}
 	/**
@@ -684,6 +707,11 @@ public class ChartFrame {
 			if (pack != null) pack.terminate();
 		});
 	}
+	/**
+	 * Configure and return the zoom in button.
+	 *
+	 * @return The zoom in button.
+	 */
 	private Pane getButtonZoomIn() {
 
 		Pane pane = getButtonPane("FRAME-ZOOM-IN");
@@ -706,6 +734,11 @@ public class ChartFrame {
 
 		return pane;
 	}
+	/**
+	 * Configure and return the zoom out button.
+	 *
+	 * @return The zoom out button.
+	 */
 	private Pane getButtonZoomOut() {
 
 		Pane pane = getButtonPane("FRAME-ZOOM-OUT");
@@ -721,6 +754,11 @@ public class ChartFrame {
 
 		return pane;
 	}
+	/**
+	 * Configure and return the move start button.
+	 *
+	 * @return The move start button.
+	 */
 	private Pane getButtonMoveStart() {
 
 		Pane pane = getButtonPane("FRAME-MOVE-START");
@@ -745,6 +783,11 @@ public class ChartFrame {
 
 		return pane;
 	}
+	/**
+	 * Configure and return the move end button.
+	 *
+	 * @return The move end button.
+	 */
 	private Pane getButtonMoveEnd() {
 
 		Pane pane = getButtonPane("FRAME-MOVE-END");
@@ -769,6 +812,11 @@ public class ChartFrame {
 
 		return pane;
 	}
+	/**
+	 * Configure and return the move left button.
+	 *
+	 * @return The move left button.
+	 */
 	private Pane getButtonMoveLeft() {
 
 		Pane pane = getButtonPane("FRAME-MOVE-LEFT");
@@ -790,6 +838,11 @@ public class ChartFrame {
 
 		return pane;
 	}
+	/**
+	 * Configure and return the move right button.
+	 *
+	 * @return The move right button.
+	 */
 	private Pane getButtonMoveRight() {
 
 		Pane pane = getButtonPane("FRAME-MOVE-RIGHT");
@@ -811,6 +864,12 @@ public class ChartFrame {
 
 		return pane;
 	}
+	/**
+	 * Returns the base button as a pane.
+	 *
+	 * @param id The string id.
+	 * @return The base button.
+	 */
 	private Pane getButtonPane(String id) {
 		Pane pane = new Pane();
 		pane.setId(id);
@@ -850,6 +909,13 @@ public class ChartFrame {
 		return canvas;
 	}
 
+	private Text getText(String id, String str) {
+		Text text = new Text(str);
+		text.setFont(textFont);
+		text.setId(id);
+		return text;
+	}
+
 	/**
 	 * Add a plot frame.
 	 *
@@ -857,6 +923,23 @@ public class ChartFrame {
 	 */
 	public void addPlotFrame(DataPlotter... plotters) {
 		PlotFrame plotFrame = new PlotFrame();
+
+		plotFrame.plotArea.pane.setOnScroll(ev -> {
+			double factor = -1.0 * ev.getDeltaY() / 100;
+			plotData.zoom(factor);
+			Platform.runLater(() -> plot());
+		});
+		plotFrame.plotArea.pane.setOnMousePressed(ev -> lastX = ev.getSceneX());
+		plotFrame.plotArea.pane.setOnMouseDragged(ev -> {
+			double currentX = ev.getSceneX();
+			double deltaX = -1.0 * (currentX - lastX);
+			lastX = currentX;
+			double width = plotFrame.plotArea.pane.getWidth();
+			double factor = deltaX / width;
+			plotData.scroll(factor);
+			Platform.runLater(() -> plot());
+		});
+
 		for (DataPlotter plotter : plotters) {
 			plotFrame.plotters.add(plotter);
 			for (DataSource source : plotter.getDataSources()) {
@@ -976,11 +1059,10 @@ public class ChartFrame {
 		/* Rectangle of the visible data. */
 		double dataSize = plotData.getDataSize();
 		double startIndex = plotData.getStartIndex();
-		double endIndex = plotData.getEndIndex();
-		double periods = endIndex - startIndex + 1;
+		double periods = plotData.getPeriods();
 		double xv = buttonFrame + widthPlot * (startIndex / dataSize);
 		double yv = buttonFrame;
-		double wv = widthPlot * ((endIndex - startIndex + 1) / dataSize);
+		double wv = widthPlot * (periods / dataSize);
 		double hv = heightPlot;
 
 		if (xv + wv > xd + wd) {
@@ -1004,26 +1086,10 @@ public class ChartFrame {
 	 * Plot the frame info.
 	 */
 	private void plotFrameInfo() {
-		TextFlow info = (TextFlow) pane.lookup("#FRAME-INFO");
-		info.getChildren().clear();
-
-		Text textSize = new Text("Size: " + Integer.toString(plotData.getDataSize()));
-		info.getChildren().add(textSize);
-
-		info.getChildren().add(new Text("  "));
-
-		Text textPeriods = new Text("Periods: " + Integer.toString(plotData.getPeriods()));
-		info.getChildren().add(textPeriods);
-
-		info.getChildren().add(new Text("  "));
-
-		Text textStart = new Text("Start: " + Integer.toString(plotData.getStartIndex()));
-		info.getChildren().add(textStart);
-
-		info.getChildren().add(new Text("  "));
-
-		Text textEnd = new Text("End: " + Integer.toString(plotData.getEndIndex()));
-		info.getChildren().add(textEnd);
+		((Text) pane.lookup("#FRAME-TEXT-SIZE")).setText("Size: " + plotData.getDataSize());
+		((Text) pane.lookup("#FRAME-TEXT-PERIODS")).setText("Periods: " + plotData.getPeriods());
+		((Text) pane.lookup("#FRAME-TEXT-START")).setText("Start: " + plotData.getStartIndex());
+		((Text) pane.lookup("#FRAME-TEXT-END")).setText("End: " + plotData.getEndIndex());
 	}
 
 }

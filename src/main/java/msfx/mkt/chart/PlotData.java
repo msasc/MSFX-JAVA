@@ -71,8 +71,8 @@ public class PlotData {
 		}
 		if (!dataSources.contains(dataSource)) {
 			dataSources.add(dataSource);
+			mergeDataSources();
 		}
-		mergeDataSources();
 	}
 	/**
 	 * Returns the start index.

@@ -45,7 +45,7 @@ public class TestChart extends Application {
 //		if (file == null) System.exit(1);
 //		if (file != null) System.out.println(file);
 
-		File file = new File("D:\\Development\\Databases\\VChart\\ID_DAX_EUR_MIN_005.txt");
+		File file = new File("D:\\Development\\Databases\\VChart\\ID_DAX_EUR_MIN_001.txt");
 
 		VChartSource src = new VChartSource(file);
 
@@ -53,16 +53,14 @@ public class TestChart extends Application {
 		DataSource source = v_chart.getDataSource();
 		BarPlotter plotter = new BarPlotter(source);
 
-		ChartFrame frame = new ChartFrame();
-		frame.addPlotFrame(plotter);
-		frame.setIndexesRangeFromEnd(500);
+		ChartFrame frame = new ChartFrame(plotter);
 
 		Scene scene = new Scene(frame.getPane());
 		stage.setTitle("Test chart");
 		stage.setScene(scene);
 		stage.centerOnScreen();
 		stage.setHeight(500);
-		stage.setWidth(500);
+		stage.setWidth(1000);
 		stage.show();
 	}
 
