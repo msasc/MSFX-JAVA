@@ -22,7 +22,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.*;
@@ -30,14 +29,15 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextBoundsType;
 import javafx.scene.text.TextFlow;
 import msfx.lib.fx.FX;
 import msfx.lib.task.Pool;
-import msfx.lib.task.Task;
 import msfx.lib.util.Numbers;
+import msfx.lib.util.Strings;
 import msfx.mkt.DataSource;
+import msfx.mkt.Period;
 
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -261,7 +261,7 @@ public class ChartFrame {
 	/**
 	 * Horizontal axis, the component where the timeline is shown.
 	 */
-	private class XAxis {
+	private class HAxis {
 		/**
 		 * The pane that contains the bound canvas.
 		 */
@@ -273,12 +273,21 @@ public class ChartFrame {
 		/**
 		 * Constructor.
 		 */
-		private XAxis() {
+		private HAxis() {
 			pane = new Pane();
 			canvas = new Canvas();
 			pane.getChildren().add(canvas);
 			canvas.widthProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "width"));
 			canvas.heightProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "height"));
+			Bounds bounds = FX.getStringBounds("Sample data", textFont);
+			double height = (bounds.getHeight() * 2) + 5 + 3;
+			pane.setPrefHeight(height);
+			BorderStroke borderStroke = new BorderStroke(
+					Color.BLACK,
+					BorderStrokeStyle.SOLID,
+					CornerRadii.EMPTY,
+					new BorderWidths(0.5, 0.0, 0.0, 0.0));
+			pane.setBorder(new Border(borderStroke));
 		}
 	}
 
@@ -515,7 +524,7 @@ public class ChartFrame {
 	/**
 	 * Horizontal axis.
 	 */
-	private final XAxis xAxis;
+	private final HAxis haxis;
 
 	/**
 	 * The border pane that contains all the components of the chart frame.
@@ -572,7 +581,7 @@ public class ChartFrame {
 
 		plotData = new PlotData();
 		plotFrames = new ArrayList<>();
-		xAxis = new XAxis();
+		haxis = new HAxis();
 		pane = new BorderPane();
 
 		textFont = new Font(10);
@@ -637,6 +646,8 @@ public class ChartFrame {
 		frameInfo.getChildren().add(getText("FRAME-TEXT-START", "Start: "));
 		frameInfo.getChildren().add(getText("FRAME-TEXT-SEP3", "   "));
 		frameInfo.getChildren().add(getText("FRAME-TEXT-END", "End: "));
+		frameInfo.getChildren().add(getText("FRAME-TEXT-SEP4", "   "));
+		frameInfo.getChildren().add(getText("FRAME-TEXT-TIME", "Time: "));
 
 		Bounds bounds = FX.getStringBounds("Some data", textFont);
 		double top = (buttonHeight - bounds.getHeight()) / 2;
@@ -666,10 +677,15 @@ public class ChartFrame {
 		setOnButtonReleased(buttonMoveRight);
 
 		/*
-		 * Put the flow pane in top pane.
+		 * Put the flow pane in the top pane.
 		 */
 
 		pane.setTop(flowPane);
+
+		/*
+		 * Put the horizontal axis in the bottom pane.
+		 */
+		pane.setBottom(haxis.pane);
 	}
 
 	/**
@@ -1042,45 +1058,54 @@ public class ChartFrame {
 		double width = canvas.getWidth();
 		double height = canvas.getHeight();
 
-		/* Background. */
+		double startIndex = plotData.getStartIndex();
+		double endIndex = plotData.getEndIndex();
+		double dataSize = plotData.getDataSize();
+
 		gc.setLineWidth(0.5);
 		gc.setFill(Color.WHITE);
 		gc.fillRect(0, 0, width, height);
 
+		/* Width and height of the plot rectangle. */
 		double widthPlot = width - (2 * buttonFrame);
 		double heightPlot = height - (2 * buttonFrame);
 
-		/* Central rectangle that shows the total available range of data. */
-		double xd = buttonFrame;
-		double yd = buttonFrame;
-		double wd = widthPlot;
-		double hd = heightPlot;
+		/* Border of the rectangle that shows the range of indexes. */
+		double x_border = buttonFrame;
+		double y_border = buttonFrame;
+		double w_border = widthPlot;
+		double h_border = heightPlot;
+		gc.strokeRect(x_border, y_border, w_border, h_border);
 
-		/* Rectangle of the visible data. */
-		double dataSize = plotData.getDataSize();
-		double startIndex = plotData.getStartIndex();
-		double periods = plotData.getPeriods();
-		double xv = buttonFrame + widthPlot * (startIndex / dataSize);
-		double yv = buttonFrame;
-		double wv = widthPlot * (periods / dataSize);
-		double hv = heightPlot;
+		/* Range of visible indexes. */
+		double r_min_index = startIndex >= 0 ? 0 : startIndex;
+		double r_max_index = endIndex < dataSize ? dataSize - 1 : endIndex;
+		double r_num_indexes = r_max_index - r_min_index - 1;
 
-		if (xv + wv > xd + wd) {
-			wv = xd + wd - xv;
-		}
-		if (xv < xd) {
-			wv -= (xd - xv);
-			xv = xd;
-		}
-		if (wv < 0.5) {
-			wv = 0.5;
-		}
+		/* Indexes of visible data. */
+		double d_min_index = startIndex < 0 ? 0 : startIndex;
+		double d_max_index = endIndex >= dataSize ? dataSize - 1 : endIndex;
+		double d_num_indexes = d_max_index - d_min_index - 1;
+
+		/* Width of the bar that displays the visible data. */
+		double w_bar = widthPlot * d_num_indexes / r_num_indexes;
+		if (w_bar < 1) w_bar = 1;
+
+		/* Total margin or difference between the bar and the rectangle. */
+		double marg = w_border - w_bar;
+
+		/* Number of indexes in the left margin and its width. */
+		double marg_indexes = r_num_indexes - d_num_indexes;
+		double left_indexes = d_min_index - r_min_index;
+		double left_margin = marg * left_indexes / marg_indexes;
+
+		/* Rest of bar. */
+		double x_bar = buttonFrame + left_margin;
+		double y_bar = buttonFrame;
+		double h_bar = heightPlot;
 
 		gc.setFill(Color.BLACK);
-		gc.fillRect(xv, yv, wv, hv);
-
-		/* Stroke the central rectangle. */
-		gc.strokeRect(xd, yd, wd, hd);
+		gc.fillRect(x_bar, y_bar, w_bar, h_bar);
 	}
 	/**
 	 * Plot the frame info.
@@ -1090,6 +1115,61 @@ public class ChartFrame {
 		((Text) pane.lookup("#FRAME-TEXT-PERIODS")).setText("Periods: " + plotData.getPeriods());
 		((Text) pane.lookup("#FRAME-TEXT-START")).setText("Start: " + plotData.getStartIndex());
 		((Text) pane.lookup("#FRAME-TEXT-END")).setText("End: " + plotData.getEndIndex());
+
+		int dataSize = plotData.getDataSize();
+		int startIndex = plotData.getStartIndex();
+		int endIndex = plotData.getEndIndex();
+
+		int startTime = 0;
+		if (startIndex >= 0) {
+			startTime = plotData.getDataTimes().get(startIndex);
+		} else {
+			startTime = plotData.getDataTimes().get(0);
+		}
+
+		int endTime = 0;
+		if (endIndex < dataSize) {
+			endTime = plotData.getDataTimes().get(endIndex);
+		} else {
+			endTime = plotData.getDataTimes().get(dataSize - 1);
+		}
+
+		LocalDateTime t_start = LocalDateTime.ofEpochSecond(startTime, 0, ZoneOffset.UTC);
+		LocalDateTime t_end = LocalDateTime.ofEpochSecond(endTime, 0, ZoneOffset.UTC);
+		if (startIndex < 0) {
+			t_start = plotData.getPeriod().add(t_start, startIndex);
+		}
+		if (endIndex >= dataSize) {
+			t_end = plotData.getPeriod().add(t_end, endIndex - dataSize + 1);
+		}
+
+
+		String s_start = Strings.leftPad(t_start.getYear(), 4);
+		s_start += "-";
+		s_start += Strings.leftPad(t_start.getMonthValue(), 2, "0");
+		s_start += "-";
+		s_start += Strings.leftPad(t_start.getDayOfMonth(), 2, "0");
+		s_start += " ";
+		s_start += Strings.leftPad(t_start.getHour(), 2, "0");
+		s_start += ":";
+		s_start += Strings.leftPad(t_start.getMinute(), 2, "0");
+
+		String s_end = Strings.leftPad(t_end.getYear(), 4);
+		s_end += "-";
+		s_end += Strings.leftPad(t_end.getMonthValue(), 2, "0");
+		s_end += "-";
+		s_end += Strings.leftPad(t_end.getDayOfMonth(), 2, "0");
+		s_end += " ";
+		s_end += Strings.leftPad(t_end.getHour(), 2, "0");
+		s_end += ":";
+		s_end += Strings.leftPad(t_end.getMinute(), 2, "0");
+
+		((Text) pane.lookup("#FRAME-TEXT-TIME")).setText(s_start + " - " + s_end);
+	}
+	/**
+	 * Plot the horizontal axis.
+	 */
+	private void plotHAxis() {
 	}
 
 }

@@ -27,13 +27,11 @@ import java.util.Locale;
  */
 public enum Unit {
 
-	SECOND("s"),
 	MINUTE("m"),
 	HOUR("h"),
 	DAY("D"),
 	WEEK("W"),
-	MONTH("M"),
-	YEAR("Y");
+	MONTH("M");
 
 	/**
 	 * One char id.
@@ -66,8 +64,6 @@ public enum Unit {
 	 */
 	public String getShortName(Locale loc) {
 		switch (this) {
-		case SECOND:
-			return StringRes.get("unitSecond", "Sec", loc);
 		case MINUTE:
 			return StringRes.get("unitMinute", "Min", loc);
 		case HOUR:
@@ -78,8 +74,6 @@ public enum Unit {
 			return StringRes.get("unitSecond", "Week", loc);
 		case MONTH:
 			return StringRes.get("unitSecond", "Month", loc);
-		case YEAR:
-			return StringRes.get("unitSecond", "Year", loc);
 		default:
 			throw new IllegalArgumentException();
 		}

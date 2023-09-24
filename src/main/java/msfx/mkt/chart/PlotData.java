@@ -21,6 +21,7 @@ import msfx.mkt.DataSource;
 import msfx.mkt.Period;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -92,6 +93,7 @@ public class PlotData {
 	}
 	/**
 	 * Return the number of periods determined by start and end indexes.
+	 *
 	 * @return The number of periods.
 	 */
 	public int getPeriods() {
@@ -196,6 +198,29 @@ public class PlotData {
 	public int getDataSize() {
 		return dataTimes.size();
 	}
+	/**
+	 * Returns the list of data times.
+	 *
+	 * @return The list of data times.
+	 */
+	public List<Integer> getDataTimes() {
+		return Collections.unmodifiableList(dataTimes);
+	}
+	/**
+	 * Returns the list of data sources.
+	 *
+	 * @return The list of data sources.
+	 */
+	public List<DataSource> getDataSources() {
+		return Collections.unmodifiableList(dataSources);
+	}
+
+	public Period getPeriod() {
+		if (dataSources.isEmpty()) {
+			throw new IllegalStateException("No available data sources");
+		}
+		return dataSources.get(0).getInfo().getPeriod();
+	}
 
 	/**
 	 * Returns the list of indexes of a data source. These indexes are aligned along the timeline
@@ -287,8 +312,6 @@ public class PlotData {
 		int size = getDataSize();
 		if (startIndex >= size) startIndex = size - 1;
 		if (endIndex < 0) endIndex = 0;
-		if (startIndex < 0) startIndex = 0;
-		if (endIndex >= size) endIndex = size - 1;
 	}
 
 	public void moveStart() {

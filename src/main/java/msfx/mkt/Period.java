@@ -16,6 +16,7 @@
 
 package msfx.mkt;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 
 /**
@@ -67,6 +68,32 @@ public final class Period {
 	 */
 	public int getSize() {
 		return size;
+	}
+
+	/**
+	 * Add the given number of periods, positive or negative, to the argument date-time.
+	 *
+	 * @param time    The date-time.
+	 * @param periods The number of periods to add.
+	 * @return The new date-time.
+	 */
+	public LocalDateTime add(LocalDateTime time, int periods) {
+		if (unit == Unit.MINUTE) {
+			return time.plusMinutes(periods * size);
+		}
+		if (unit == Unit.HOUR) {
+			return time.plusHours(periods * size);
+		}
+		if (unit == Unit.DAY) {
+			return time.plusDays(periods * size);
+		}
+		if (unit == Unit.WEEK) {
+			return time.plusDays(periods * size * 7);
+		}
+		if (unit == Unit.MONTH) {
+			return time.plusMonths(periods * size);
+		}
+		return null;
 	}
 
 	/**
