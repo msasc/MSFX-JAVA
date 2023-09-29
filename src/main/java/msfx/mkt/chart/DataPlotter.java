@@ -19,6 +19,7 @@ package msfx.mkt.chart;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import msfx.mkt.DataSource;
+import msfx.mkt.info.OutputInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +89,13 @@ public abstract class DataPlotter {
 	 * @return The list of values that will be plotted.
 	 */
 	public abstract double[] getValues(int index);
+	/**
+	 * Returns the list of output informations for each value of a given index.
+	 *
+	 * @param index The data index.
+	 * @return The list of output informations.
+	 */
+	public abstract OutputInfo[] getInfos(int index);
 
 	/**
 	 * Returns the bearish color.

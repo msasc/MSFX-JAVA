@@ -31,7 +31,7 @@ public class FX {
 	 * Return the logical string bounds for text sizes calculations.
 	 *
 	 * @param string The string.
-	 * @param font The optional font.
+	 * @param font   The optional font.
 	 * @return The bounds.
 	 */
 	public static Bounds getStringBounds(String string, Font font) {
@@ -41,5 +41,38 @@ public class FX {
 		}
 		text.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
 		return text.getLayoutBounds();
+	}
+	/**
+	 * Returns the text component.
+	 *
+	 * @param str  The string.
+	 * @return The text component.
+	 */
+	public static Text getText(String str) {
+		return getText(null, str, null);
+	}
+	/**
+	 * Returns the text component.
+	 *
+	 * @param str  The string.
+	 * @param font Optional font.
+	 * @return The text component.
+	 */
+	public static Text getText(String str, Font font) {
+		return getText(null, str, font);
+	}
+	/**
+	 * Returns the text component.
+	 *
+	 * @param id   Optional id.
+	 * @param str  The string.
+	 * @param font Optional font.
+	 * @return The text component.
+	 */
+	public static Text getText(String id, String str, Font font) {
+		Text text = new Text(str);
+		if (font != null) text.setFont(font);
+		if (id != null) text.setId(id);
+		return text;
 	}
 }

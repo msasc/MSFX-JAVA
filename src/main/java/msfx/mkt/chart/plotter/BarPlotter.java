@@ -24,6 +24,7 @@ import msfx.mkt.Data;
 import msfx.mkt.DataSource;
 import msfx.mkt.chart.DataPlotter;
 import msfx.mkt.chart.PlotContext;
+import msfx.mkt.info.OutputInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,12 +37,23 @@ import java.util.List;
 public class BarPlotter extends DataPlotter {
 
 	/**
+	 * Output information.
+	 */
+	private OutputInfo[] infos;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param dataSource The data source.
 	 */
 	public BarPlotter(DataSource dataSource) {
 		super(dataSource);
+		infos = new OutputInfo[] {
+				new OutputInfo("Open", "O", "Open value", 0),
+				new OutputInfo("High", "H", "High value", 1),
+				new OutputInfo("Low", "L", "Low value", 2),
+				new OutputInfo("Close", "C", "Close value", 3)
+		};
 	}
 
 	/**
@@ -55,6 +67,16 @@ public class BarPlotter extends DataPlotter {
 		Data data = getDataSources().get(0).getData(index);
 		double[] values = data.getValues();
 		return new double[] { values[0], values[1], values[2], values[3] };
+	}
+	/**
+	 * Returns the list of output informations for each value of a given index.
+	 *
+	 * @param index The data index.
+	 * @return The list of output informations.
+	 */
+	@Override
+	public OutputInfo[] getInfos(int index) {
+		return infos;
 	}
 
 	private int startIndex;
@@ -172,7 +194,6 @@ public class BarPlotter extends DataPlotter {
 		double height = context.getHeight();
 
 		GraphicsContext gc = context.getGraphicsContext();
-		gc.clearRect(0, 0, width, height);
 		gc.setLineWidth(1.0);
 
 		/*

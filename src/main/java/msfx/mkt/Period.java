@@ -93,7 +93,7 @@ public final class Period {
 		if (unit == Unit.MONTH) {
 			return time.plusMonths(periods * size);
 		}
-		return null;
+		throw new IllegalStateException();
 	}
 
 	/**

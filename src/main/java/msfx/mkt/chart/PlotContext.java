@@ -25,14 +25,14 @@ import msfx.lib.util.Numbers;
  *
  * @author Miquel Sas
  */
-public interface PlotContext {
+public abstract class PlotContext {
 
 	/**
 	 * Returns a suitable pool to prepare plot calculations concurrently.
 	 *
 	 * @return The pool.
 	 */
-	Pool getPlotPool();
+	public abstract Pool getPlotPool();
 
 	/**
 	 * Returns the plot data that provides the range of data indexes to as well as the corresponding
@@ -40,52 +40,52 @@ public interface PlotContext {
 	 *
 	 * @return The plot data.
 	 */
-	PlotData getPlotData();
+	public abstract PlotData getPlotData();
 
 	/**
 	 * The graphics context where the plot has to be performed.
 	 *
 	 * @return The graphics context.
 	 */
-	GraphicsContext getGraphicsContext();
+	public abstract GraphicsContext getGraphicsContext();
 
 	/**
 	 * Returns the width of the plot area.
 	 *
 	 * @return The width.
 	 */
-	double getWidth();
+	public abstract double getWidth();
 	/**
 	 * Returns the height of the plot area.
 	 *
 	 * @return The height.
 	 */
-	double getHeight();
+	public abstract double getHeight();
 
 	/**
 	 * Returns the top margin.
 	 *
 	 * @return The top margin.
 	 */
-	double getMarginTop();
+	public abstract double getMarginTop();
 	/**
 	 * Returns the right margin.
 	 *
 	 * @return The right margin.
 	 */
-	double getMarginRight();
+	public abstract double getMarginRight();
 	/**
 	 * Returns the bottom margin.
 	 *
 	 * @return The bottom margin.
 	 */
-	double getMarginBottom();
+	public abstract double getMarginBottom();
 	/**
 	 * Returns the left margin.
 	 *
 	 * @return The left margin.
 	 */
-	double getMarginLeft();
+	public abstract double getMarginLeft();
 
 	/**
 	 * Calculates the coordinate X given the data index within the graphics context.
@@ -93,25 +93,83 @@ public interface PlotContext {
 	 * @param index The index.
 	 * @return The coordinate X.
 	 */
-	double getCoordinateX(int index);
+	public abstract double getCoordinateX(int index);
 	/**
 	 * Calculates the coordinate Y given the value and the scale within the graphics context.
 	 *
 	 * @param value The value.
 	 * @return The coordinate Y.
 	 */
-	double getCoordinateY(double value);
+	public abstract double getCoordinateY(double value);
 
 	/**
 	 * Return the minimum value within the range of indexes.
 	 *
 	 * @return The minimum value.
 	 */
-	double getMinimumValue();
+	public abstract double getMinimumValue();
 	/**
 	 * Return the maximum value within the range of indexes.
 	 *
 	 * @return The maximum value.
 	 */
-	double getMaximumValue();
+	public abstract double getMaximumValue();
+
+	/**
+	 * Returns the most approximate index given the x coordinate within the plot area.
+	 *
+	 * @param x The x coordinate within the plot area.
+	 * @return The most approximate index.
+	 */
+	public int getIndex(double x) {
+
+		/* Within the left margin. */
+		if (x <= getMarginLeft()) {
+			return getPlotData().getStartIndex();
+		}
+
+		/* Within the right margin. */
+		if (x >= getWidth() - getMarginRight()) {
+			return getPlotData().getEndIndex();
+		}
+
+		/* Proportional x position as a factor. */
+		double fx = (x - getMarginLeft()) / (getWidth() - getMarginLeft() - getMarginRight());
+
+		/* Indexes from start to x position. */
+		double periods = getPlotData().getPeriods();
+		int indexes = (int) Numbers.round(periods * fx, 0);
+
+		/* Approximate index. */
+		int index = getPlotData().getStartIndex() + indexes - 1;
+		return index;
+	}
+	/**
+	 * Returns the most approximate value given the y coordinate within the plot area.
+	 *
+	 * @param y The y coordinate within the plot area.
+	 * @return The most approximate value.
+	 */
+	public double getValue(double y) {
+
+		/* Within the top margin. */
+		if (y <= getMarginTop()) {
+			return getMaximumValue();
+		}
+
+		/* Within the bottom margin. */
+		if (y >= getHeight() - getMarginBottom()) {
+			return getMinimumValue();
+		}
+
+		/* Proportional y position as a factor. */
+		double fy = (y - getMarginTop()) / (getHeight() - getMarginTop() - getMarginBottom());
+
+		/* Approximate value. */
+		double value = getMaximumValue() - ((getMaximumValue() - getMinimumValue()) * fy);
+
+		/* Rounding. */
+		int scale = getPlotData().getPipScale();
+		return Numbers.round(value, scale);
+	}
 }

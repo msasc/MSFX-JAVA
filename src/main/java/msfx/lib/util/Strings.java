@@ -18,7 +18,9 @@ package msfx.lib.util;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -764,21 +766,51 @@ public class Strings {
 		return str.equalsIgnoreCase(strTrue);
 	}
 
-	public static String toString(LocalDateTime time, boolean printDate) {
+	/**
+	 * Returns the ISO string for the date.
+	 *
+	 * @param date The date.
+	 * @return The ISO string.
+	 */
+	public static String toString(LocalDate date) {
 		StringBuilder b = new StringBuilder();
-		if (printDate) {
-			b.append(time.getYear());
-			b.append("-");
-			b.append(leftPad(time.getMonthValue(), 2, "0"));
-			b.append("-");
-			b.append(leftPad(time.getDayOfMonth(), 2, "0"));
-			b.append(" ");
-		}
+		b.append(date.getYear());
+		b.append("-");
+		b.append(leftPad(date.getMonthValue(), 2, "0"));
+		b.append("-");
+		b.append(leftPad(date.getDayOfMonth(), 2, "0"));
+		return b.toString();
+	}
+	/**
+	 * Returns the ISO string for the time.
+	 *
+	 * @param time    The time.
+	 * @param seconds A boolean that indicates whether seconds must be added.
+	 * @return The ISO string.
+	 */
+	public static String toString(LocalTime time, boolean seconds) {
+		StringBuilder b = new StringBuilder();
 		b.append(leftPad(time.getHour(), 2, "0"));
 		b.append(":");
 		b.append(leftPad(time.getMinute(), 2, "0"));
-		b.append(":");
-		b.append(leftPad(time.getSecond(), 2, "0"));
+		if (seconds) {
+			b.append(":");
+			b.append(leftPad(time.getSecond(), 2, "0"));
+		}
+		return b.toString();
+	}
+	/**
+	 * Returns the ISO string for the date-time.
+	 *
+	 * @param time    The date-time.
+	 * @param seconds A boolean that indicates whether seconds must be added.
+	 * @return The ISO string.
+	 */
+	public static String toString(LocalDateTime time, boolean seconds) {
+		StringBuilder b = new StringBuilder();
+		b.append(toString(time.toLocalDate()));
+		b.append(" ");
+		b.append(toString(time.toLocalTime(), seconds));
 		return b.toString();
 	}
 
@@ -878,6 +910,17 @@ public class Strings {
 		}
 
 		return b.toString();
+	}
+
+	/**
+	 * Returns the string of a number, rounded to the decimal places.
+	 *
+	 * @param number   The number.
+	 * @param decimals The number of decimal places.
+	 * @return The rounded string right padded.
+	 */
+	public static String toString(Number number, int decimals) {
+		return Numbers.getBigDecimal(number, decimals).toPlainString();
 	}
 
 	/**

@@ -20,9 +20,12 @@ import msfx.lib.util.Numbers;
 import msfx.mkt.DataSource;
 import msfx.mkt.Period;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Container of all information related to the data that is aligned to the same timeline.
@@ -239,6 +242,35 @@ public class PlotData {
 	}
 
 	/**
+	 * Returns the local date-time that corresponds to and index that, in turn, can be negative or
+	 * GE the data size.
+	 *
+	 * @param index The index.
+	 * @return The corresponding local date-time with if current offset.
+	 */
+	public LocalDateTime getTime(int index) {
+		int dataSize = getDataSize();
+		int dataSecond = 0;
+		if (index >= 0 && index < dataSize) {
+			dataSecond = getDataTimes().get(index);
+		} else if (index < 0) {
+			dataSecond = getDataTimes().get(0);
+		} else if (index >= dataSize) {
+			dataSecond = getDataTimes().get(dataSize - 1);
+		}
+		int offSet = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / 3600000;
+		ZoneOffset zoneOffset = ZoneOffset.ofHours(offSet);
+		LocalDateTime time = LocalDateTime.ofEpochSecond(dataSecond, 0, zoneOffset);
+		if (index < 0) {
+			time = getPeriod().add(time, index);
+		}
+		if (index >= dataSize) {
+			time = getPeriod().add(time, index - dataSize + 1);
+		}
+		return time;
+	}
+
+	/**
 	 * Set the range of start and end indexes to N periods that finish at the end of the available
 	 * periods.
 	 *
@@ -324,5 +356,20 @@ public class PlotData {
 		int periods = getPeriods();
 		endIndex = getDataSize() - 1;
 		startIndex = Math.max(endIndex - periods + 1, 0);
+	}
+
+	/**
+	 * Returns the greater pip scale within all data sources.
+	 * @return The pip scale.
+	 */
+	public int getPipScale() {
+		int scale = Numbers.MIN_INTEGER;
+		for (DataSource source : dataSources) {
+			int pipScale = source.getInfo().getPipScale();
+			if (pipScale > scale) {
+				scale = pipScale;
+			}
+		}
+		return scale;
 	}
 }

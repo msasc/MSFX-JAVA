@@ -38,6 +38,7 @@ public class TestTime {
 		System.out.println(System.currentTimeMillis());
 
 		System.out.println(new BigDecimal("0.0001").scale());
+		System.out.println(new BigDecimal("0.0001").scale());
 
 	}
 }
