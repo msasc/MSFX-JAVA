@@ -339,27 +339,33 @@ public class PlotData {
 	}
 
 	public void zoom(int toZoom) {
-		startIndex -= toZoom;
-		endIndex += toZoom;
-		int size = getDataSize();
-		if (startIndex >= size) startIndex = size - 1;
+		if (startIndex == 0) {
+			endIndex += (2 * toZoom);
+		} else if (endIndex == getDataSize() - 1) {
+			startIndex -= (2 * toZoom);
+		} else {
+			startIndex -= toZoom;
+			endIndex += toZoom;
+		}
+		if (startIndex >= getDataSize()) startIndex = getDataSize() - 1;
 		if (endIndex < 0) endIndex = 0;
 	}
 
 	public void moveStart() {
 		int periods = getPeriods();
 		startIndex = 0;
-		endIndex = Math.min(startIndex + periods - 1, getDataSize() - 1);
+		endIndex = startIndex + periods - 1;
 	}
 
 	public void moveEnd() {
 		int periods = getPeriods();
 		endIndex = getDataSize() - 1;
-		startIndex = Math.max(endIndex - periods + 1, 0);
+		startIndex = endIndex - periods + 1;
 	}
 
 	/**
 	 * Returns the greater pip scale within all data sources.
+	 *
 	 * @return The pip scale.
 	 */
 	public int getPipScale() {

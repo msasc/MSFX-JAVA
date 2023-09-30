@@ -37,6 +37,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.TextFlow;
 import msfx.lib.fx.FX;
 import msfx.lib.task.Pool;
+import msfx.lib.task.timer.TimerTaskRun;
 import msfx.lib.util.Numbers;
 import msfx.lib.util.Strings;
 import msfx.mkt.DataSource;
@@ -64,13 +65,29 @@ import java.util.TimerTask;
 public class ChartFrame {
 
 	/**
-	 * A border pane that contains a plot info pane in the top, a plot are in the center and a
-	 * vertical axis in the right.
+	 * A pane that has, as its first child, a canvas with the width and height properties binded to
+	 * those of its parent pane.
+	 */
+	private class CanvasPane {
+		private Pane pane;
+		private Canvas canvas;
+		private CanvasPane() {
+			pane = new Pane();
+			canvas = new Canvas();
+			pane.getChildren().add(canvas);
+			canvas.widthProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "width"));
+			canvas.heightProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "height"));
+		}
+	}
+
+	/**
+	 * A border pane that contains an info pane at the top, a plot pane at the center and a
+	 * vertical axis at the right.
 	 */
 	private class PlotFrame {
 
 		/**
-		 * Index within the list of plot frames, necessary to have an unique ID for all its
+		 * Index within the list of plot frames, necessary to have a unique ID for all its
 		 * components.
 		 */
 		private int index;
@@ -83,11 +100,11 @@ public class ChartFrame {
 		/**
 		 * The plot area where the data charts are plotted.
 		 */
-		private final PlotArea plotArea;
+		private final CanvasPane plotArea;
 		/**
 		 * The associated vertical axis.
 		 */
-		private final VAxis vaxis;
+		private final CanvasPane vaxis;
 		/**
 		 * Info pane.
 		 */
@@ -110,6 +127,9 @@ public class ChartFrame {
 		 */
 		private double maximumValue;
 
+		/**
+		 * The plot scale that applies to all data plotters that plot on this plot frame area.
+		 */
 		private PlotScale scale;
 
 		private ContextMenu contextMenu;
@@ -125,12 +145,17 @@ public class ChartFrame {
 		 * @param index The index with the chart frame list of plot frames.
 		 */
 		private PlotFrame(int index) {
+			this.index = index;
 
 			plotters = new ArrayList<>();
 			scale = PlotScale.LOGARITHMIC;
 
-			plotArea = new PlotArea();
-			vaxis = new VAxis();
+			plotArea = new CanvasPane();
+			vaxis = new CanvasPane();
+			vaxis.pane.setBorder(getBorder(0.0, 0.0, 0.0, 0.5));
+			vaxis.pane.setPrefWidth(50);
+			vaxis.pane.setMinWidth(50);
+
 			pane = new BorderPane();
 
 			/*
@@ -139,12 +164,7 @@ public class ChartFrame {
 
 			infoPane = new FlowPane();
 			infoPane.setId(getId("FLOW-PANE"));
-			BorderStroke borderStroke = new BorderStroke(
-					Color.BLACK,
-					BorderStrokeStyle.SOLID,
-					CornerRadii.EMPTY,
-					new BorderWidths(0.0, 0.0, 0.5, 0.0));
-			infoPane.setBorder(new Border(borderStroke));
+			infoPane.setBorder(getBorder(0.0, 0.0, 0.5, 0.0));
 			infoPane.setPrefHeight(buttonHeight);
 
 			TextFlow textFlow = new TextFlow();
@@ -416,75 +436,6 @@ public class ChartFrame {
 	}
 
 	/**
-	 * The chart component where data and drawings are plotted.
-	 */
-	private class PlotArea {
-		/**
-		 * The pane that contains the bound canvas.
-		 */
-		private final Pane pane;
-		/**
-		 * The canvas to paint on.
-		 */
-		private final Canvas canvas;
-		/**
-		 * Constructor.
-		 */
-		private PlotArea() {
-			pane = new Pane();
-			canvas = new Canvas();
-			pane.getChildren().add(canvas);
-			canvas.widthProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "width"));
-			canvas.heightProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "height"));
-		}
-	}
-
-	/**
-	 * The plot info component contains a text flow control that expands to the right and, at the
-	 * right, a close button.
-	 */
-	private class PlotInfo {
-		/**
-		 * Grid that contains the cursor information and the buttons.
-		 */
-		private final GridPane pane = new GridPane();
-	}
-
-	/**
-	 * Vertical axis, the component where scaled values of the plot are shown.
-	 */
-	private class VAxis {
-		/**
-		 * The pane that contains the bound canvas.
-		 */
-		private final Pane pane;
-		/**
-		 * The canvas to paint on.
-		 */
-		private final Canvas canvas;
-		/**
-		 * Constructor.
-		 */
-		private VAxis() {
-			pane = new Pane();
-			canvas = new Canvas();
-			pane.getChildren().add(canvas);
-			canvas.widthProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "width"));
-			canvas.heightProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "height"));
-
-			BorderStroke borderStroke = new BorderStroke(
-					Color.BLACK,
-					BorderStrokeStyle.SOLID,
-					CornerRadii.EMPTY,
-					new BorderWidths(0.0, 0.0, 0.0, 0.5));
-			pane.setBorder(new Border(borderStroke));
-
-			pane.setPrefWidth(50);
-			pane.setMinWidth(50);
-		}
-	}
-
-	/**
 	 * Horizontal axis, the component where the timeline is shown.
 	 */
 	private class HAxis {
@@ -662,68 +613,6 @@ public class ChartFrame {
 	}
 
 	/**
-	 * Timer task to refresh and plot when the buttons move left or right and zoom in or out are
-	 * hold pressed.
-	 */
-	private class TaskRefresh extends TimerTask {
-		/**
-		 * The runnable that performs the task.
-		 */
-		private Runnable task;
-		/**
-		 * Constructor.
-		 *
-		 * @param task The runnable task to perform.
-		 */
-		private TaskRefresh(Runnable task) {
-			this.task = task;
-		}
-		/**
-		 * Do run.
-		 */
-		@Override
-		public void run() {
-			task.run();
-			Platform.runLater(() -> plot());
-		}
-	}
-
-	/**
-	 * Timer utility class that packs the timer and the task, it is stored in the user object of the
-	 * button, and cleaned when the button is released.
-	 */
-	private class TimerPack {
-		/**
-		 * The timer.
-		 */
-		private Timer timer;
-		/**
-		 * The timer task.
-		 */
-		private TimerTask task;
-		/**
-		 * Constructor.
-		 *
-		 * @param task The timer task.
-		 */
-		private TimerPack(TimerTask task) {
-			this.task = task;
-			this.timer = new Timer(true);
-			this.timer.schedule(this.task, refreshPeriod * 4, refreshPeriod);
-		}
-		/**
-		 * Terminate the task and the timer, called on button released.
-		 */
-		private void terminate() {
-			task.cancel();
-			timer.purge();
-			timer.cancel();
-			timer = null;
-			task = null;
-		}
-	}
-
-	/**
 	 * The insets, as a unitary factor, that define the margins of the panes. The plot area has a
 	 * margin all around. The vertical axis has a top and bottom margin, that are the as the ones
 	 * of its correspondent plot area. The horizontal axis and the plot info area have no margins
@@ -795,6 +684,10 @@ public class ChartFrame {
 	 * Global font for all texts int this chart frame.
 	 */
 	private Font textFont;
+	/**
+	 * Default background for all components.
+	 */
+	private Background background = new Background(new BackgroundFill(Color.WHITE, null, null));
 
 	private double lastX;
 
@@ -809,6 +702,7 @@ public class ChartFrame {
 		plotFrames = new ArrayList<>();
 		haxis = new HAxis();
 		pane = new BorderPane();
+		pane.setBackground(background);
 
 		textFont = new Font(10);
 
@@ -842,12 +736,12 @@ public class ChartFrame {
 		 * Add the buttons to zoom in and out, and to move start, end, left and right.
 		 */
 
-		Pane buttonZoomIn = getButtonZoomIn();
-		Pane buttonZoomOut = getButtonZoomOut();
-		Pane buttonMoveLeft = getButtonMoveLeft();
-		Pane buttonMoveRight = getButtonMoveRight();
-		Pane buttonMoveStart = getButtonMoveStart();
-		Pane buttonMoveEnd = getButtonMoveEnd();
+		Pane buttonZoomIn = getFrameButton("FRAME-ZOOM-IN");
+		Pane buttonZoomOut = getFrameButton("FRAME-ZOOM-OUT");
+		Pane buttonMoveLeft = getFrameButton("FRAME-MOVE-LEFT");
+		Pane buttonMoveRight = getFrameButton("FRAME-MOVE-RIGHT");
+		Pane buttonMoveStart = getFrameButton("FRAME-MOVE-START");
+		Pane buttonMoveEnd = getFrameButton("FRAME-MOVE-END");
 
 		flowPane.getChildren().add(buttonZoomIn);
 		flowPane.getChildren().add(buttonZoomOut);
@@ -909,7 +803,7 @@ public class ChartFrame {
 	 * Helper to configure the clicked event.
 	 *
 	 * @param button The button.
-	 * @param action The action perform.
+	 * @param action The action to perform.
 	 */
 	private void setOnButtonClicked(Pane button, Runnable action) {
 		button.setOnMouseClicked(ev -> {
@@ -925,8 +819,13 @@ public class ChartFrame {
 	 */
 	private void setOnButtonPressed(Pane button, Runnable action) {
 		button.setOnMousePressed(ev -> {
-			TimerPack pack = new TimerPack(new TaskRefresh(action));
-			button.setUserData(pack);
+			TimerTaskRun task = new TimerTaskRun(() -> {
+				action.run();
+				Platform.runLater(() -> plot());
+			});
+			Timer timer = new Timer(true);
+			button.setUserData(timer);
+			timer.schedule(task, refreshPeriod * 4, refreshPeriod);
 		});
 	}
 	/**
@@ -936,177 +835,25 @@ public class ChartFrame {
 	 */
 	private void setOnButtonReleased(Pane button) {
 		button.setOnMouseReleased(ev -> {
-			TimerPack pack = (TimerPack) button.getUserData();
-			if (pack != null) pack.terminate();
+			Timer timer = (Timer) button.getUserData();
+			if (timer != null) timer.cancel();
 		});
 	}
 	/**
-	 * Configure and return the zoom in button.
+	 * Configure and return the zoom-in button.
 	 *
-	 * @return The zoom in button.
+	 * @return The zoom-in button.
 	 */
-	private Pane getButtonZoomIn() {
-
-		Pane pane = getButtonPane("FRAME-ZOOM-IN");
-
-		double margHorz = (buttonWidth - buttonFrame) / 2;
-		double margVert = (buttonHeight - buttonFrame) / 2;
-
-		double xh1 = margHorz;
-		double yh1 = buttonHeight / 2;
-		double xh2 = xh1 + buttonFrame;
-		double yh2 = yh1;
-
-		double xv1 = buttonWidth / 2;
-		double yv1 = margVert;
-		double xv2 = xv1;
-		double yv2 = yv1 + buttonFrame;
-
-		pane.getChildren().add(getButtonLine(xh1, yh1, xh2, yh2));
-		pane.getChildren().add(getButtonLine(xv1, yv1, xv2, yv2));
-
-		return pane;
+	private Line getButtonLine(double x1, double y1, double x2, double y2) {
+		Line line = new Line(x1, y1, x2, y2);
+		line.setStrokeWidth(0.5);
+		return line;
 	}
-	/**
-	 * Configure and return the zoom out button.
-	 *
-	 * @return The zoom out button.
-	 */
-	private Pane getButtonZoomOut() {
 
-		Pane pane = getButtonPane("FRAME-ZOOM-OUT");
+	private Pane getFrameButton(String id) {
 
-		double margHorz = (buttonWidth - buttonFrame) / 2;
-
-		double xh1 = margHorz;
-		double yh1 = buttonHeight / 2;
-		double xh2 = xh1 + buttonFrame;
-		double yh2 = yh1;
-
-		pane.getChildren().add(getButtonLine(xh1, yh1, xh2, yh2));
-
-		return pane;
-	}
-	/**
-	 * Configure and return the move start button.
-	 *
-	 * @return The move start button.
-	 */
-	private Pane getButtonMoveStart() {
-
-		Pane pane = getButtonPane("FRAME-MOVE-START");
-
-		double margHorz = (buttonWidth - buttonFrame) / 2;
-		double margVert = (buttonHeight - buttonFrame) / 2;
-
-		double xh1 = margHorz;
-		double yh1 = buttonHeight / 2;
-		double xh2 = xh1 + buttonFrame;
-		double yh2 = yh1;
-
-		double xv1 = buttonWidth / 2;
-		double yv1 = margVert;
-		double xv2 = xv1;
-		double yv2 = yv1 + buttonFrame;
-
-		pane.getChildren().add(getButtonLine(xh1, yh1, xv1, yv1));
-		pane.getChildren().add(getButtonLine(xh1, yh1, xv2, yv2));
-		pane.getChildren().add(getButtonLine(xv1, yh1, xh2, yv1));
-		pane.getChildren().add(getButtonLine(xv1, yh1, xh2, yv2));
-
-		return pane;
-	}
-	/**
-	 * Configure and return the move end button.
-	 *
-	 * @return The move end button.
-	 */
-	private Pane getButtonMoveEnd() {
-
-		Pane pane = getButtonPane("FRAME-MOVE-END");
-
-		double margHorz = (buttonWidth - buttonFrame) / 2;
-		double margVert = (buttonHeight - buttonFrame) / 2;
-
-		double xh1 = margHorz;
-		double yh1 = buttonHeight / 2;
-		double xh2 = xh1 + buttonFrame;
-		double yh2 = yh1;
-
-		double xv1 = buttonWidth / 2;
-		double yv1 = margVert;
-		double xv2 = xv1;
-		double yv2 = yv1 + buttonFrame;
-
-		pane.getChildren().add(getButtonLine(xv1, yv1, xh2, yh1));
-		pane.getChildren().add(getButtonLine(xh1, yv1, xv1, yh1));
-		pane.getChildren().add(getButtonLine(xv1, yv2, xh2, yh1));
-		pane.getChildren().add(getButtonLine(xh1, yv2, xv2, yh1));
-
-		return pane;
-	}
-	/**
-	 * Configure and return the move left button.
-	 *
-	 * @return The move left button.
-	 */
-	private Pane getButtonMoveLeft() {
-
-		Pane pane = getButtonPane("FRAME-MOVE-LEFT");
-
-		double margHorz = (buttonWidth - buttonFrame) / 2;
-		double margVert = (buttonHeight - buttonFrame) / 2;
-		double frameStep = buttonFrame / 4;
-
-		double x1, y1, x2, y2;
-
-		x1 = margHorz + frameStep;
-		y1 = buttonHeight / 2;
-		x2 = margHorz + (frameStep * 3);
-		y2 = margVert;
-		pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
-
-		y2 = margVert + buttonFrame;
-		pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
-
-		return pane;
-	}
-	/**
-	 * Configure and return the move right button.
-	 *
-	 * @return The move right button.
-	 */
-	private Pane getButtonMoveRight() {
-
-		Pane pane = getButtonPane("FRAME-MOVE-RIGHT");
-
-		double margHorz = (buttonWidth - buttonFrame) / 2;
-		double margVert = (buttonHeight - buttonFrame) / 2;
-		double frameStep = buttonFrame / 4;
-
-		double x1, y1, x2, y2;
-
-		x1 = margHorz + (frameStep * 3);
-		y1 = buttonHeight / 2;
-		x2 = margHorz + frameStep;
-		y2 = margVert;
-		pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
-
-		y2 = margVert + buttonFrame;
-		pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
-
-		return pane;
-	}
-	/**
-	 * Returns the base button as a pane.
-	 *
-	 * @param id The string id.
-	 * @return The base button.
-	 */
-	private Pane getButtonPane(String id) {
 		Pane pane = new Pane();
 		pane.setId(id);
-		pane.setUserData(pane.getBackground());
 		pane.setPrefSize(buttonWidth, buttonHeight);
 		pane.setOnMouseEntered(ev -> {
 			pane.setBackground(Background.fill(Color.LIGHTGRAY));
@@ -1120,21 +867,125 @@ public class ChartFrame {
 			if (inThePane) {
 				pane.setBackground(Background.fill(Color.LIGHTGRAY));
 			} else {
-				Background background = (Background) pane.getUserData();
 				pane.setBackground(background);
 			}
 		});
 		pane.setOnMouseExited(ev -> {
-			Background background = (Background) pane.getUserData();
 			pane.setBackground(background);
 		});
+
+		if (id.equals("FRAME-ZOOM-IN")) {
+
+			double margHorz = (buttonWidth - buttonFrame) / 2;
+			double margVert = (buttonHeight - buttonFrame) / 2;
+
+			double xh1 = margHorz;
+			double yh1 = buttonHeight / 2;
+			double xh2 = xh1 + buttonFrame;
+			double yh2 = yh1;
+
+			double xv1 = buttonWidth / 2;
+			double yv1 = margVert;
+			double xv2 = xv1;
+			double yv2 = yv1 + buttonFrame;
+
+			pane.getChildren().add(getButtonLine(xh1, yh1, xh2, yh2));
+			pane.getChildren().add(getButtonLine(xv1, yv1, xv2, yv2));
+
+		}
+		if (id.equals("FRAME-ZOOM-OUT")) {
+
+			double margHorz = (buttonWidth - buttonFrame) / 2;
+
+			double xh1 = margHorz;
+			double yh1 = buttonHeight / 2;
+			double xh2 = xh1 + buttonFrame;
+			double yh2 = yh1;
+
+			pane.getChildren().add(getButtonLine(xh1, yh1, xh2, yh2));
+
+		}
+		if (id.equals("FRAME-MOVE-START")) {
+
+			double margHorz = (buttonWidth - buttonFrame) / 2;
+			double margVert = (buttonHeight - buttonFrame) / 2;
+
+			double xh1 = margHorz;
+			double yh1 = buttonHeight / 2;
+			double xh2 = xh1 + buttonFrame;
+			double yh2 = yh1;
+
+			double xv1 = buttonWidth / 2;
+			double yv1 = margVert;
+			double xv2 = xv1;
+			double yv2 = yv1 + buttonFrame;
+
+			pane.getChildren().add(getButtonLine(xh1, yh1, xv1, yv1));
+			pane.getChildren().add(getButtonLine(xh1, yh1, xv2, yv2));
+			pane.getChildren().add(getButtonLine(xv1, yh1, xh2, yv1));
+			pane.getChildren().add(getButtonLine(xv1, yh1, xh2, yv2));
+
+		}
+		if (id.equals("FRAME-MOVE-END")) {
+
+			double margHorz = (buttonWidth - buttonFrame) / 2;
+			double margVert = (buttonHeight - buttonFrame) / 2;
+
+			double xh1 = margHorz;
+			double yh1 = buttonHeight / 2;
+			double xh2 = xh1 + buttonFrame;
+			double yh2 = yh1;
+
+			double xv1 = buttonWidth / 2;
+			double yv1 = margVert;
+			double xv2 = xv1;
+			double yv2 = yv1 + buttonFrame;
+
+			pane.getChildren().add(getButtonLine(xv1, yv1, xh2, yh1));
+			pane.getChildren().add(getButtonLine(xh1, yv1, xv1, yh1));
+			pane.getChildren().add(getButtonLine(xv1, yv2, xh2, yh1));
+			pane.getChildren().add(getButtonLine(xh1, yv2, xv2, yh1));
+
+		}
+		if (id.equals("FRAME-MOVE-LEFT")) {
+
+			double margHorz = (buttonWidth - buttonFrame) / 2;
+			double margVert = (buttonHeight - buttonFrame) / 2;
+			double frameStep = buttonFrame / 4;
+
+			double x1, y1, x2, y2;
+
+			x1 = margHorz + frameStep;
+			y1 = buttonHeight / 2;
+			x2 = margHorz + (frameStep * 3);
+			y2 = margVert;
+			pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
+
+			y2 = margVert + buttonFrame;
+			pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
+
+		}
+		if (id.equals("FRAME-MOVE-RIGHT")) {
+
+			double margHorz = (buttonWidth - buttonFrame) / 2;
+			double margVert = (buttonHeight - buttonFrame) / 2;
+			double frameStep = buttonFrame / 4;
+
+			double x1, y1, x2, y2;
+
+			x1 = margHorz + (frameStep * 3);
+			y1 = buttonHeight / 2;
+			x2 = margHorz + frameStep;
+			y2 = margVert;
+			pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
+
+			y2 = margVert + buttonFrame;
+			pane.getChildren().add(getButtonLine(x1, y1, x2, y2));
+
+		}
 		return pane;
 	}
-	private Line getButtonLine(double x1, double y1, double x2, double y2) {
-		Line line = new Line(x1, y1, x2, y2);
-		line.setStrokeWidth(0.5);
-		return line;
-	}
+
 	private Canvas getViewPortCanvas() {
 		Canvas canvas = new Canvas();
 		canvas.setId("FRAME-VIEWPORT");
@@ -1214,7 +1065,7 @@ public class ChartFrame {
 	}
 
 	/**
-	 * Returns the main frame pane.
+	 * Returns the main frame pane to be installed in the scene.
 	 *
 	 * @return The main frame pane.
 	 */
@@ -1389,9 +1240,8 @@ public class ChartFrame {
 		LocalDateTime startTime = plotData.getTime(plotData.getStartIndex());
 		LocalDateTime endTime = plotData.getTime(plotData.getEndIndex());
 	}
-
 	/**
-	 * Force a global refresh by setting a minimal change in the window size.
+	 * Force a global refresh with a minimal delay so all FX pulses have been processed.
 	 */
 	private void plotDelay() {
 		Runnable run = () -> {
@@ -1401,5 +1251,23 @@ public class ChartFrame {
 			Platform.runLater(() -> plot());
 		};
 		new Thread(run).start();
+	}
+
+	/**
+	 * Returns a black solid border.
+	 *
+	 * @param top    Top line width.
+	 * @param right  Right line width.
+	 * @param bottom Bottom line width.
+	 * @param left   Left line width.
+	 * @return The border.
+	 */
+	private Border getBorder(double top, double right, double bottom, double left) {
+		BorderStroke borderStroke = new BorderStroke(
+				Color.BLACK,
+				BorderStrokeStyle.SOLID,
+				CornerRadii.EMPTY,
+				new BorderWidths(top, right, bottom, left));
+		return new Border(borderStroke);
 	}
 }

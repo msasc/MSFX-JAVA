@@ -17,6 +17,9 @@
 package msfx.lib.fx;
 
 import javafx.geometry.Bounds;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
@@ -27,6 +30,7 @@ import javafx.scene.text.TextBoundsType;
  * @author Miquel Sas
  */
 public class FX {
+
 	/**
 	 * Return the logical string bounds for text sizes calculations.
 	 *
@@ -45,7 +49,7 @@ public class FX {
 	/**
 	 * Returns the text component.
 	 *
-	 * @param str  The string.
+	 * @param str The string.
 	 * @return The text component.
 	 */
 	public static Text getText(String str) {
