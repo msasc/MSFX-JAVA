@@ -16,7 +16,9 @@
 
 package msfx.lib.fx;
 
+import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -78,5 +80,21 @@ public class FX {
 		if (font != null) text.setFont(font);
 		if (id != null) text.setId(id);
 		return text;
+	}
+	/**
+	 * Remove the chid with the given ID from the list.
+	 *
+	 * @param id       The id of the child.
+	 * @param children The list of children.
+	 */
+	public static Node remove(String id, ObservableList<Node> children) {
+		for (int i = children.size() - 1; i >= 0; i--) {
+			Node child = children.get(i);
+			if (child.getId() != null && child.getId().equals(id)) {
+				children.remove(i);
+				return child;
+			}
+		}
+		return null;
 	}
 }

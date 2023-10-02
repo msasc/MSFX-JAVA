@@ -18,7 +18,6 @@ package test.mkt;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import msfx.mkt.DataSource;
 import msfx.mkt.chart.ChartFrame;
@@ -54,8 +53,9 @@ public class TestChart extends Application {
 		BarPlotter plotter = new BarPlotter(source);
 
 		ChartFrame frame = new ChartFrame(plotter);
+		frame.addPlotFrame(plotter);
 
-		Scene scene = new Scene(frame.getPane());
+		Scene scene = new Scene(frame.getPaneFrame());
 		stage.setTitle("Test chart");
 		stage.setScene(scene);
 		stage.centerOnScreen();
