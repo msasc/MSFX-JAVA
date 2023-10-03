@@ -19,8 +19,6 @@ package msfx.mkt.chart;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
-import javafx.css.CssMetaData;
-import javafx.css.Styleable;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
@@ -139,6 +137,15 @@ public class ChartFrame {
 		 * List of data plotters.
 		 */
 		private List<DataPlotter> plotters;
+
+		/**
+		 * Indicator that the cross-cursor horizontal line is on or off.
+		 */
+		private boolean crossCursorHorz = false;
+		/**
+		 * Indicator that the cross-cursor vertical line is on or off.
+		 */
+		private boolean crossCursorVert = false;
 	}
 
 	/**
@@ -295,7 +302,7 @@ public class ChartFrame {
 	/**
 	 * List of plot frames.
 	 */
-	private final List<ChartPlot> charts;
+	private final List<ChartPlot> chartPlots;
 	/**
 	 * Horizontal axis.
 	 */
@@ -362,7 +369,7 @@ public class ChartFrame {
 
 	private double lastX;
 	private ContextMenu contextMenu;
-	private boolean crossCursor;
+	private boolean crossCursor = false;
 
 	/**
 	 * Constructor.
@@ -375,11 +382,10 @@ public class ChartFrame {
 		Bounds bounds = FX.getStringBounds("Sample data", textFont);
 
 		plotData = new PlotData();
-		charts = new ArrayList<>();
+		chartPlots = new ArrayList<>();
 		paneFrame = new BorderPane();
 		paneFrame.setBackground(background);
 		contextMenu = new ContextMenu();
-		crossCursor = false;
 
 
 		/* Horizontal axis in the bottom pane. */
@@ -437,7 +443,7 @@ public class ChartFrame {
 
 		ChartPlot plot = new ChartPlot();
 
-		plot.index = charts.size();
+		plot.index = chartPlots.size();
 		plot.plotters = new ArrayList<>();
 		plot.scale = PlotScale.LOGARITHMIC;
 
@@ -469,6 +475,8 @@ public class ChartFrame {
 		plot.panePlot.setCenter(plot.chart.pane);
 		plot.panePlot.setRight(plot.vaxis.pane);
 
+		plot.chart.pane.setOnMouseEntered(ev -> onMouseEntered(ev, plot));
+		plot.chart.pane.setOnMouseExited(ev -> onMouseExited(ev, plot));
 		plot.chart.pane.setOnMouseMoved(ev -> onMouseMoved(ev, plot));
 		plot.chart.pane.setOnMouseClicked(ev -> onMouseClicked(ev, plot));
 
@@ -494,26 +502,26 @@ public class ChartFrame {
 				plotData.addDataSource(source);
 			}
 		}
-		charts.add(plot);
-		if (charts.size() == 1) {
+		chartPlots.add(plot);
+		if (chartPlots.size() == 1) {
 			paneFrame.setCenter(plot.panePlot);
 		} else {
 			SplitPane splitPane = new SplitPane();
 			splitPane.setBackground(background);
 			splitPane.setOrientation(Orientation.VERTICAL);
-			for (ChartPlot chart : charts) {
-				splitPane.getItems().add(chart.panePlot);
+			for (ChartPlot p : chartPlots) {
+				splitPane.getItems().add(p.panePlot);
 			}
-			for (SplitPane.Divider divider : splitPane.getDividers()) {
-				divider.positionProperty().addListener(
+			for (SplitPane.Divider d : splitPane.getDividers()) {
+				d.positionProperty().addListener(
 						(ObservableValue<? extends Number> ob, Number vo, Number vn) -> {
 							Platform.runLater(() -> { plot(); });
 						});
 			}
-			List<CssMetaData<? extends Styleable,?>> cssMeta = splitPane.getCssMetaData();
-			for (CssMetaData<? extends Styleable,?> css : cssMeta) {
-				System.out.println(css);
-			}
+//			List<CssMetaData<? extends Styleable,?>> cssMeta = splitPane.getCssMetaData();
+//			for (CssMetaData<? extends Styleable,?> css : cssMeta) {
+//				System.out.println(css);
+//			}
 
 			paneFrame.setCenter(splitPane);
 		}
@@ -522,10 +530,10 @@ public class ChartFrame {
 	 * Calculate the horizontal margins common to all plot areas.
 	 */
 	private void calculateHorizontalMargins() {
-		if (charts.isEmpty()) {
+		if (chartPlots.isEmpty()) {
 			throw new IllegalStateException("No plot frames available");
 		}
-		double width = charts.get(0).chart.pane.getWidth();
+		double width = chartPlots.get(0).chart.pane.getWidth();
 		marginRight = Numbers.round(width * insets.getRight(), 0);
 		marginLeft = Numbers.round(width * insets.getLeft(), 0);
 	}
@@ -794,10 +802,10 @@ public class ChartFrame {
 	 * @return The coordinate X.
 	 */
 	private double getCoordinateX(int index) {
-		if (charts.isEmpty()) {
+		if (chartPlots.isEmpty()) {
 			throw new IllegalStateException("No plot frames available");
 		}
-		double width = charts.get(0).chart.pane.getWidth();
+		double width = chartPlots.get(0).chart.pane.getWidth();
 		double startIndex = plotData.getStartIndex();
 		double endIndex = plotData.getEndIndex();
 		double indexFactor = ((double) index - startIndex) / (endIndex - startIndex);
@@ -850,59 +858,6 @@ public class ChartFrame {
 	}
 
 	/**
-	 * Respond to the move mouse event on the chart-plot pane.
-	 *
-	 * @param ev   The mouse event.
-	 * @param plot The chart plot where the mouse event started.
-	 */
-	private void onMouseMoved(MouseEvent ev, ChartPlot plot) {
-
-		/* Cross-cursor. */
-		setCrossCursor(plot, ev.getX(), ev.getY());
-
-		/* Info. */
-		if (plot.panePlot.getTop() == null) return;
-
-		TextFlow textFlow = (TextFlow) plot.infoPane.lookup(getId("#TEXT-FLOW-CP", plot.index));
-		textFlow.getChildren().clear();
-
-		textFlow.getChildren().add(FX.getText("X: " + Numbers.round(ev.getX(), 1), textFont));
-		textFlow.getChildren().add(FX.getText("  ", textFont));
-		textFlow.getChildren().add(FX.getText("Y: " + Numbers.round(ev.getY(), 1), textFont));
-
-		PlotContext context = getContext(plot);
-		int scale = context.getPlotData().getPipScale();
-		String strValue;
-
-		int index = context.getIndex(ev.getX());
-		textFlow.getChildren().add(FX.getText("  ", textFont));
-		textFlow.getChildren().add(FX.getText("I: " + index, textFont));
-
-		double value = context.getValue(ev.getY());
-		strValue = Strings.toString(value, scale);
-		textFlow.getChildren().add(FX.getText("  ", textFont));
-		textFlow.getChildren().add(FX.getText("V: " + strValue, textFont));
-
-		LocalDateTime time = plotData.getTime(index);
-		strValue = Strings.toString(time, false);
-		textFlow.getChildren().add(FX.getText("  ", textFont));
-		textFlow.getChildren().add(FX.getText("T: " + strValue, textFont));
-
-		if (index > 0 && index < context.getPlotData().getDataSize()) {
-			for (DataPlotter plotter : plot.plotters) {
-				double[] values = plotter.getValues(index);
-				OutputInfo[] infos = plotter.getInfos(index);
-				for (OutputInfo info : infos) {
-					int i = info.getIndex();
-					strValue = Strings.toString(values[i], scale);
-					String name = info.getShortName();
-					textFlow.getChildren().add(FX.getText("  ", textFont));
-					textFlow.getChildren().add(FX.getText(name + ": " + strValue, textFont));
-				}
-			}
-		}
-	}
-	/**
 	 * Respond to the move clicked event on the chart-plot pane.
 	 *
 	 * @param ev   The mouse event.
@@ -954,9 +909,9 @@ public class ChartFrame {
 			if (node != null) {
 				MenuItem item = new MenuItem("Hide values pane");
 				item.setOnAction(e -> {
-					for (ChartPlot chartPlot : charts) {
-						clearPlotArea(plot);
-						chartPlot.panePlot.setRight(null);
+					for (ChartPlot p : chartPlots) {
+						clearPlotArea(p);
+						p.panePlot.setRight(null);
 					}
 					plotDelay();
 				});
@@ -966,9 +921,9 @@ public class ChartFrame {
 			if (node == null) {
 				MenuItem item = new MenuItem("Show values pane");
 				item.setOnAction(e -> {
-					for (ChartPlot chartPlot : charts) {
-						clearPlotArea(plot);
-						chartPlot.panePlot.setRight(chartPlot.vaxis.pane);
+					for (ChartPlot p : chartPlots) {
+						clearPlotArea(p);
+						p.panePlot.setRight(p.vaxis.pane);
 					}
 					plotDelay();
 				});
@@ -1003,19 +958,123 @@ public class ChartFrame {
 				MenuItem item = new MenuItem("Hide cross-cursor");
 				item.setOnAction(e -> {
 					crossCursor = false;
+					plot.crossCursorVert = false;
+					plot.crossCursorHorz = false;
 					setCrossCursor(plot, -1, -1);
+					for (ChartPlot p : chartPlots) {
+						if (p == plot) continue;
+						p.crossCursorVert = false;
+						p.crossCursorHorz = false;
+						setCrossCursor(p, ev.getX(), -1);
+					}
 				});
 				contextMenu.getItems().add(item);
 			} else {
 				MenuItem item = new MenuItem("Show cross-cursor");
 				item.setOnAction(e -> {
 					crossCursor = true;
+					plot.crossCursorVert = true;
+					plot.crossCursorHorz = true;
 					setCrossCursor(plot, ev.getX(), ev.getY());
+					for (ChartPlot p : chartPlots) {
+						if (p == plot) continue;
+						p.crossCursorVert = true;
+						p.crossCursorHorz = false;
+						setCrossCursor(p, ev.getX(), -1);
+					}
 				});
 				contextMenu.getItems().add(item);
 			}
 
 			contextMenu.show(plot.panePlot, ev.getScreenX(), ev.getScreenY());
+		}
+	}
+	private void onMouseEntered(MouseEvent ev, ChartPlot plot) {
+		if (crossCursor) {
+			plot.crossCursorVert = true;
+			plot.crossCursorHorz = true;
+			setCrossCursor(plot, ev.getX(), ev.getY());
+			for (ChartPlot p : chartPlots) {
+				if (p == plot) continue;
+				p.crossCursorVert = true;
+				p.crossCursorHorz = false;
+				setCrossCursor(p, ev.getX(), -1);
+			}
+		}
+	}
+	private void onMouseExited(MouseEvent ev, ChartPlot plot) {
+		if (crossCursor) {
+			plot.crossCursorVert = false;
+			plot.crossCursorHorz = false;
+			setCrossCursor(plot, ev.getX(), ev.getY());
+			for (ChartPlot p : chartPlots) {
+				if (p == plot) continue;
+				p.crossCursorVert = false;
+				p.crossCursorHorz = false;
+				setCrossCursor(p, ev.getX(), -1);
+			}
+		}
+	}
+	/**
+	 * Respond to the move mouse event on the chart-plot pane.
+	 *
+	 * @param ev   The mouse event.
+	 * @param plot The chart plot where the mouse event started.
+	 */
+	private void onMouseMoved(MouseEvent ev, ChartPlot plot) {
+
+		/* Cross-cursor. */
+		if (plot.crossCursorVert) {
+			plot.crossCursorHorz = true;
+		}
+		setCrossCursor(plot, ev.getX(), ev.getY());
+		for (ChartPlot p : chartPlots) {
+			if (p == plot) continue;
+			p.crossCursorVert = plot.crossCursorVert;
+			p.crossCursorHorz = false;
+			setCrossCursor(p, ev.getX(), -1);
+		}
+
+		/* Info. */
+		if (plot.panePlot.getTop() == null) return;
+
+		TextFlow textFlow = (TextFlow) plot.infoPane.lookup(getId("#TEXT-FLOW-CP", plot.index));
+		textFlow.getChildren().clear();
+
+		textFlow.getChildren().add(FX.getText("X: " + Numbers.round(ev.getX(), 1), textFont));
+		textFlow.getChildren().add(FX.getText("  ", textFont));
+		textFlow.getChildren().add(FX.getText("Y: " + Numbers.round(ev.getY(), 1), textFont));
+
+		PlotContext context = getContext(plot);
+		int scale = context.getPlotData().getPipScale();
+		String strValue;
+
+		int index = context.getIndex(ev.getX());
+		textFlow.getChildren().add(FX.getText("  ", textFont));
+		textFlow.getChildren().add(FX.getText("I: " + index, textFont));
+
+		double value = context.getValue(ev.getY());
+		strValue = Strings.toString(value, scale);
+		textFlow.getChildren().add(FX.getText("  ", textFont));
+		textFlow.getChildren().add(FX.getText("V: " + strValue, textFont));
+
+		LocalDateTime time = plotData.getTime(index);
+		strValue = Strings.toString(time, false);
+		textFlow.getChildren().add(FX.getText("  ", textFont));
+		textFlow.getChildren().add(FX.getText("T: " + strValue, textFont));
+
+		if (index > 0 && index < context.getPlotData().getDataSize()) {
+			for (DataPlotter plotter : plot.plotters) {
+				double[] values = plotter.getValues(index);
+				OutputInfo[] infos = plotter.getInfos(index);
+				for (OutputInfo info : infos) {
+					int i = info.getIndex();
+					strValue = Strings.toString(values[i], scale);
+					String name = info.getShortName();
+					textFlow.getChildren().add(FX.getText("  ", textFont));
+					textFlow.getChildren().add(FX.getText(name + ": " + strValue, textFont));
+				}
+			}
 		}
 	}
 
@@ -1025,14 +1084,16 @@ public class ChartFrame {
 	public void plot() {
 
 		plotPool = new Pool("CHART_FRAME", parallelism);
+
 		int startIndex = plotData.getStartIndex();
 		int endIndex = plotData.getEndIndex();
-		for (ChartPlot plot : charts) {
+		for (ChartPlot plot : chartPlots) {
 			calculateMinMaxValues(plot, startIndex, endIndex);
 			calculateVerticalMargins(plot);
 		}
 		calculateHorizontalMargins();
-		for (ChartPlot plot : charts) {
+
+		for (ChartPlot plot : chartPlots) {
 			plot(plot);
 		}
 		plotPool.shutdown();
@@ -1144,7 +1205,7 @@ public class ChartFrame {
 	private void plotHAxis() {
 
 		/* Use the first plot frame for horizontal calculations. */
-		PlotContext context = new Context(charts.get(0));
+		PlotContext context = new Context(chartPlots.get(0));
 
 		/* Get the unit of the plot period. */
 		Unit unit = plotData.getPeriod().getUnit();
@@ -1206,35 +1267,69 @@ public class ChartFrame {
 	private void setCrossCursor(ChartPlot plot, double x, double y) {
 
 		/* Remove if required. */
-		if (!crossCursor) {
-			FX.remove("CROSS-CURSOR-HORZ", plot.chart.pane.getChildren());
+		if (!plot.crossCursorVert) {
 			FX.remove("CROSS-CURSOR-VERT", plot.chart.pane.getChildren());
+		}
+		if (!plot.crossCursorHorz) {
+			FX.remove("CROSS-CURSOR-HORZ", plot.chart.pane.getChildren());
+		}
+		if (!plot.crossCursorVert && !plot.crossCursorHorz) {
 			return;
 		}
 
-		/* Vertical line. */
+		/* Possibly required context. */
 		PlotContext context = getContext(plot);
-		Line line_vert = (Line) plot.chart.pane.lookup("#CROSS-CURSOR-VERT");
-		if (line_vert == null) {
-			line_vert = new Line();
-			line_vert.setId("CROSS-CURSOR-VERT");
-			line_vert.setStrokeWidth(0.5);
-			plot.chart.pane.getChildren().add(line_vert);
-		}
-		if (x >= 0) {
-			int index = context.getIndex(x);
-			line_vert.setUserData(index);
-		} else {
-			x = plot.chart.pane.getWidth() / 2;
-			Integer index = (Integer) line_vert.getUserData();
-			if (index != null) {
-				x = context.getCoordinateX(index);
+
+		/* Vertical line. */
+		if (plot.crossCursorVert) {
+			Line line_vert = (Line) plot.chart.pane.lookup("#CROSS-CURSOR-VERT");
+			if (line_vert == null) {
+				line_vert = new Line();
+				line_vert.setId("CROSS-CURSOR-VERT");
+				line_vert.setStrokeWidth(0.5);
+				plot.chart.pane.getChildren().add(line_vert);
 			}
+			if (x >= 0) {
+				int index = context.getIndex(x);
+				line_vert.setUserData(index);
+			} else {
+				x = plot.chart.pane.getWidth() / 2;
+				Integer index = (Integer) line_vert.getUserData();
+				if (index != null) {
+					x = context.getCoordinateX(index);
+				}
+			}
+			line_vert.setStartX(x);
+			line_vert.setStartY(0);
+			line_vert.setEndX(x);
+			line_vert.setEndY(plot.chart.pane.getHeight());
 		}
-		line_vert.setStartX(x);
-		line_vert.setStartY(0);
-		line_vert.setEndX(x);
-		line_vert.setEndY(plot.chart.pane.getHeight());
+
+		/* Horizontal line. */
+		if (plot.crossCursorHorz) {
+			Line line_horz = (Line) plot.chart.pane.lookup("#CROSS-CURSOR-HORZ");
+			if (line_horz == null) {
+				line_horz = new Line();
+				line_horz.setId("CROSS-CURSOR-HORZ");
+				line_horz.setStrokeWidth(0.5);
+				plot.chart.pane.getChildren().add(line_horz);
+			}
+			if (y >= 0) {
+				double value = context.getValue(y);
+				line_horz.setUserData(value);
+			} else {
+				y = plot.chart.pane.getHeight() / 2;
+				Double value = (Double) line_horz.getUserData();
+				if (value != null) {
+					y = context.getCoordinateY(value);
+				}
+			}
+			line_horz.setStartX(0);
+			line_horz.setStartY(y);
+			line_horz.setEndX(plot.chart.pane.getWidth());
+			line_horz.setEndY(y);
+		}
+
 	}
 
 	/**
