@@ -518,10 +518,6 @@ public class ChartFrame {
 							Platform.runLater(() -> { plot(); });
 						});
 			}
-//			List<CssMetaData<? extends Styleable,?>> cssMeta = splitPane.getCssMetaData();
-//			for (CssMetaData<? extends Styleable,?> css : cssMeta) {
-//				System.out.println(css);
-//			}
 
 			paneFrame.setCenter(splitPane);
 		}
@@ -1082,6 +1078,14 @@ public class ChartFrame {
 	 * Do plot the chart components.
 	 */
 	public void plot() {
+
+		Node center = paneFrame.getCenter();
+		if (center instanceof SplitPane sp) {
+			Node div = sp.lookup(".split-pane-divider");
+			if (div != null) {
+				div.setStyle("-fx-padding: 0.3mm;");
+			}
+		}
 
 		plotPool = new Pool("CHART_FRAME", parallelism);
 
