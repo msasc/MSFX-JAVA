@@ -19,9 +19,12 @@ package test.mkt;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import msfx.mkt.Data;
 import msfx.mkt.DataSource;
 import msfx.mkt.chart.ChartFrame;
 import msfx.mkt.chart.plotter.BarPlotter;
+import msfx.mkt.chart.plotter.LinePlotter;
+import msfx.mkt.info.OutputInfo;
 import msfx.mkt.source.VChartSource;
 
 import java.io.File;
@@ -50,10 +53,13 @@ public class TestChart extends Application {
 
 		VChartSource v_chart = new VChartSource(file);
 		DataSource source = v_chart.getDataSource();
-		BarPlotter plotter = new BarPlotter(source);
+		BarPlotter b_plotter = new BarPlotter(source);
+		LinePlotter l_plotter = new LinePlotter(
+				Data.CLOSE, source,
+				new OutputInfo("Close", "C", "Close", 0));
 
-		ChartFrame frame = new ChartFrame(plotter);
-		frame.addPlotFrame(plotter);
+		ChartFrame frame = new ChartFrame(b_plotter);
+		frame.addPlotFrame(l_plotter);
 
 		Scene scene = new Scene(frame.getPaneFrame());
 		stage.setTitle("Test chart");

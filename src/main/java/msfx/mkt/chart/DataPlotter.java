@@ -90,10 +90,10 @@ public abstract class DataPlotter {
 	 */
 	public abstract double[] getValues(int index);
 	/**
-	 * Returns the list of output informations for each value of a given index.
+	 * Returns the list of output information for each value of a given index.
 	 *
 	 * @param index The data index.
-	 * @return The list of output informations.
+	 * @return The list of output information.
 	 */
 	public abstract OutputInfo[] getInfos(int index);
 
@@ -129,6 +129,7 @@ public abstract class DataPlotter {
 	public void setColorBullish(Color colorBullish) {
 		this.colorBullish = colorBullish;
 	}
+
 	/**
 	 * Perform the plot.
 	 *

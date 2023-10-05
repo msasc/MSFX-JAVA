@@ -880,20 +880,28 @@ public class ChartFrame {
 			node = plot.panePlot.getTop();
 			/* Info pane present, request hide. */
 			if (node != null) {
-				MenuItem item = new MenuItem("Hide info pane");
+				MenuItem item = new MenuItem("Hide info panes");
 				item.setOnAction(e -> {
 					clearPlotArea(plot);
 					plot.panePlot.setTop(null);
+					for (ChartPlot p : chartPlots) {
+						clearPlotArea(p);
+						p.panePlot.setTop(null);
+					}
 					plotDelay();
 				});
 				contextMenu.getItems().add(item);
 			}
 			/* Info pane not present, request show. */
 			if (node == null) {
-				MenuItem item = new MenuItem("Show info pane");
+				MenuItem item = new MenuItem("Show info panes");
 				item.setOnAction(e -> {
 					clearPlotArea(plot);
 					plot.panePlot.setTop(plot.infoPane);
+					for (ChartPlot p : chartPlots) {
+						clearPlotArea(p);
+						p.panePlot.setTop(p.infoPane);
+					}
 					plotDelay();
 				});
 				contextMenu.getItems().add(item);
@@ -903,7 +911,7 @@ public class ChartFrame {
 			node = plot.panePlot.getRight();
 			/* Values pane is present, request hide. */
 			if (node != null) {
-				MenuItem item = new MenuItem("Hide values pane");
+				MenuItem item = new MenuItem("Hide value panes");
 				item.setOnAction(e -> {
 					for (ChartPlot p : chartPlots) {
 						clearPlotArea(p);
@@ -915,7 +923,7 @@ public class ChartFrame {
 			}
 			/* Values pane is not present, request show. */
 			if (node == null) {
-				MenuItem item = new MenuItem("Show values pane");
+				MenuItem item = new MenuItem("Show value panes");
 				item.setOnAction(e -> {
 					for (ChartPlot p : chartPlots) {
 						clearPlotArea(p);

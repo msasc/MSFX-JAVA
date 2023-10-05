@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bar plotter.
+ * Bar plotter on OHLC data.
  *
  * @author Miquel Sas
  */
@@ -191,13 +191,13 @@ public class BarPlotter extends DataPlotter {
 	public void plot(PlotContext context) {
 
 		double width = context.getWidth();
-		double height = context.getHeight();
 
 		GraphicsContext gc = context.getGraphicsContext();
 		gc.setLineWidth(1.0);
 
 		/*
-		 * Start and en period to iterate. Calculate the available width per period in pixels.
+		 * Start and end periods to iterate.
+		 * Calculate the available width per period in pixels.
 		 * If the available width is less than 3, then the bat will be a single vertical line.
 		 */
 
