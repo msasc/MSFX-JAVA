@@ -217,7 +217,7 @@ public class BarPlotter extends DataPlotter {
 
 		int parallelism = context.getPlotPool().getParallelism();
 		int periodsPerSegment = (int) (periods / parallelism);
-		boolean parallel = periodsPerSegment >= 100;
+		boolean parallel = periodsPerSegment >= 500;
 
 		if (parallel) {
 

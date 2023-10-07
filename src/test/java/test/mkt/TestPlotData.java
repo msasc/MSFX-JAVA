@@ -35,7 +35,8 @@ public class TestPlotData {
 		outputInfos.add(new OutputInfo("High", "H", "High price", 1));
 		outputInfos.add(new OutputInfo("Low", "L", "Low price", 2));
 		outputInfos.add(new OutputInfo("Close", "C", "Close price", 3));
-		DataInfo info = new DataInfo("X", "X", null, min5, 2, 2, outputInfos);
+
+		DataInfo info = new DataInfo("X", min5);
 
 		LocalDateTime start = LocalDateTime.of(2023, 9, 1, 12, 0);
 		int secs = (int) start.toEpochSecond(ZoneOffset.UTC);

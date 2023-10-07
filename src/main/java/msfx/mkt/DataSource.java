@@ -99,9 +99,9 @@ public abstract class DataSource {
 		return Objects.equals(id, that.id);
 	}
 	/**
-	 * Returns the has code.
+	 * Returns the hash code.
 	 *
-	 * @return The has code.
+	 * @return The hash code.
 	 */
 	@Override
 	public int hashCode() {

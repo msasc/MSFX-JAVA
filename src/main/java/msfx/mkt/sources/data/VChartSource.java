@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package msfx.mkt.source;
+package msfx.mkt.sources.data;
 
 import msfx.lib.util.Files;
 import msfx.lib.util.Numbers;
 import msfx.lib.util.Strings;
 import msfx.mkt.*;
 import msfx.mkt.info.DataInfo;
-import msfx.mkt.info.OutputInfo;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -251,16 +250,20 @@ public class VChartSource {
 
 		Instrument instr = new Instrument(
 				name, name, pipValue, pipScale, tickValue, tickScale, 0, curr_a, curr_b);
-		List<OutputInfo> outputs = new ArrayList<>();
-		outputs.add(new OutputInfo("Open", "O", "Open value", 0));
-		outputs.add(new OutputInfo("High", "H", "High value", 1));
-		outputs.add(new OutputInfo("Low", "L", "Low value", 2));
-		outputs.add(new OutputInfo("Close", "C", "Close value", 3));
-		outputs.add(new OutputInfo("Volume", "V", "Volume value", 4));
 
 		String infoName = name + " - " + period.toString();
 
-		DataInfo info = new DataInfo(infoName, infoName, instr, period, -1, -1, outputs);
+		DataInfo info = new DataInfo(infoName, period);
+
+		info.addOutputInfo("Open", "O", "Open value", 0);
+		info.addOutputInfo("High", "H", "High value", 1);
+		info.addOutputInfo("Low", "L", "Low value", 2);
+		info.addOutputInfo("Close", "C", "Close value", 3);
+		info.addOutputInfo("Volume", "V", "Volume value", 4);
+
+		info.setTitle(infoName);
+		info.setInstrument(instr);
+
 		return info;
 	}
 

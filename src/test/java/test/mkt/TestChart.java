@@ -21,11 +21,14 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import msfx.mkt.Data;
 import msfx.mkt.DataSource;
+import msfx.mkt.IndicatorSource;
 import msfx.mkt.chart.ChartFrame;
 import msfx.mkt.chart.plotter.BarPlotter;
 import msfx.mkt.chart.plotter.LinePlotter;
-import msfx.mkt.info.OutputInfo;
-import msfx.mkt.source.VChartSource;
+import msfx.mkt.info.IndicatorInfo;
+import msfx.mkt.sources.data.VChartSource;
+import msfx.mkt.sources.indicators.AdaptedMovingAverage;
+import msfx.mkt.sources.indicators.SourceFitter;
 
 import java.io.File;
 
@@ -54,12 +57,19 @@ public class TestChart extends Application {
 		VChartSource v_chart = new VChartSource(file);
 		DataSource source = v_chart.getDataSource();
 		BarPlotter b_plotter = new BarPlotter(source);
-		LinePlotter l_plotter = new LinePlotter(
-				Data.CLOSE, source,
-				new OutputInfo("Close", "C", "Close", 0));
+		LinePlotter l_plotter = new LinePlotter(Data.CLOSE, source, "Close", "C", "Close");
 
-		ChartFrame frame = new ChartFrame(b_plotter);
-		frame.addPlotFrame(l_plotter);
+		IndicatorInfo indInf = new IndicatorInfo("ASAVG", source.getInfo().getPeriod());
+		IndicatorSource average = new AdaptedMovingAverage(indInf);
+		average.addRequiredSource(source);
+
+		SourceFitter fitter = new SourceFitter(indInf);
+		fitter.addRequiredSource(source);
+
+		LinePlotter a_plotter = new LinePlotter(0, fitter, "FIT", "FIT", "Fitter");
+
+		ChartFrame frame = new ChartFrame(b_plotter, a_plotter);
+//		frame.addPlotFrame(l_plotter);
 
 		Scene scene = new Scene(frame.getPaneFrame());
 		stage.setTitle("Test chart");

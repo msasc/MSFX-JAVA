@@ -56,6 +56,25 @@ public class Data {
 	public static final int DATA_PRICE_SIZE = 5;
 
 	/**
+	 * Returns the median price: (H + L) / 2
+	 *
+	 * @param data The data element.
+	 * @return The median price.
+	 */
+	public static double getMedianPrice(Data data) {
+		return (data.values[HIGH] + data.values[LOW]) / 2;
+	}
+	/**
+	 * Returns the typical price: (H + L + C) / 3
+	 *
+	 * @param data The data element.
+	 * @return The typical price.
+	 */
+	public static double getTypicalPrice(Data data) {
+		return (data.values[HIGH] + data.values[LOW] + data.values[CLOSE]) / 3;
+	}
+
+	/**
 	 * Returns a boolean indicating if this OHLC data is bearish.
 	 *
 	 * @param data The data.

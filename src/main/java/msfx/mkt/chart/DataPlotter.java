@@ -83,7 +83,8 @@ public abstract class DataPlotter {
 		return dataSources;
 	}
 	/**
-	 * Returns the list of values that will be plotted.
+	 * Returns the list of values from the sources that tis plotter will use to plot. At a limit,
+	 * the number of values could be different from one index to another.
 	 *
 	 * @param index The index.
 	 * @return The list of values that will be plotted.

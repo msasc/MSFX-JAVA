@@ -43,6 +43,7 @@ import msfx.lib.util.Numbers;
 import msfx.lib.util.Strings;
 import msfx.lib.util.funtion.Function;
 import msfx.mkt.DataSource;
+import msfx.mkt.IndicatorSource;
 import msfx.mkt.Unit;
 import msfx.mkt.info.OutputInfo;
 
@@ -374,9 +375,9 @@ public class ChartFrame {
 	/**
 	 * Constructor.
 	 *
-	 * @param plotter The starting data plotter.
+	 * @param plotters The starting data plotters.
 	 */
-	public ChartFrame(DataPlotter plotter) {
+	public ChartFrame(DataPlotter... plotters) {
 
 		/* Text bounds to calculate sizes. */
 		Bounds bounds = FX.getStringBounds("Sample data", textFont);
@@ -431,7 +432,7 @@ public class ChartFrame {
 		paneFrame.setTop(flowPane);
 
 		/* Add the initial plotter. */
-		addPlotFrame(plotter);
+		addPlotFrame(plotters);
 		setIndexesRangeFromEnd(500);
 	}
 	/**
@@ -499,6 +500,9 @@ public class ChartFrame {
 		for (DataPlotter plotter : plotters) {
 			plot.plotters.add(plotter);
 			for (DataSource source : plotter.getDataSources()) {
+				if (source instanceof IndicatorSource indicatorSource) {
+					indicatorSource.calculate(plotData);
+				}
 				plotData.addDataSource(source);
 			}
 		}

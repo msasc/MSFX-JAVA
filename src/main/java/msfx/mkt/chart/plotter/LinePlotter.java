@@ -45,16 +45,33 @@ public class LinePlotter extends DataPlotter {
 	private OutputInfo outputInfo;
 
 	/**
-	 * Constructor indicating the OHLC index.
+	 * Constructor.
 	 *
-	 * @param index      The OHLC index.
+	 * @param index      The index in the data array of values.
 	 * @param dataSource The data source.
-	 * @param outputInfo The output information.
 	 */
-	public LinePlotter(int index, DataSource dataSource, OutputInfo outputInfo) {
+	public LinePlotter(int index, DataSource dataSource) {
+		this(index, dataSource, "Value", "V", "Data value");
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param index      The index in the data array of values.
+	 * @param dataSource The data source.
+	 * @param name       The output information name.
+	 * @param shortName  The output information short name.
+	 * @param title      The output information title.
+	 */
+	public LinePlotter(
+			int index,
+			DataSource dataSource,
+			String name,
+			String shortName,
+			String title) {
 		super(dataSource);
 		this.index = index;
-		this.outputInfo = outputInfo;
+		this.outputInfo = new OutputInfo(name, shortName, title, 0);
 	}
 
 	/**

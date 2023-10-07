@@ -16,6 +16,7 @@
 
 package msfx.mkt.info;
 
+import msfx.mkt.Data;
 import msfx.mkt.Instrument;
 import msfx.mkt.Period;
 
@@ -33,115 +34,66 @@ public class DataInfo {
 	/**
 	 * ID or name.
 	 */
-	private final String id;
+	private String id;
 	/**
 	 * A title or description.
 	 */
-	private final String title;
+	private String title;
 
 	/**
 	 * Instrument of data if applicable.
 	 */
-	private final Instrument instrument;
+	private Instrument instrument;
 	/**
 	 * Period.
 	 */
-	private final Period period;
+	private Period period;
 
 	/**
 	 * The pip scale used for the data in this data list.
 	 */
-	private final int pipScale;
+	private Integer pipScale;
 	/**
 	 * The tick scale used for the data in this data list.
 	 */
-	private final int tickScale;
+	private Integer tickScale;
 
 	/**
 	 * The list of information about outputs.
 	 */
-	private final List<OutputInfo> outputs;
+	private List<OutputInfo> outputInfos = new ArrayList<>();
 
 	/**
-	 * Constructor.
-	 *
-	 * @param id         ID or name, not null.
-	 * @param title      Title or description, not null.
-	 * @param instrument Instrument of data, null if not applicable.
-	 * @param period     Period, not null.
-	 * @param pipScale   The pip scale, if the instrument is not null, can be -1, and then it is
-	 *                   picked from the instrument. If the instrument is null it must be GE zero.
-	 * @param tickScale  The tick scale, if the instrument is not null, can be -1, and then it is
-	 *                   picked from the instrument. If the instrument is null it must be GE zero.
-	 * @param outputs    List of information of outputs, with sequential indexes starting at zero.
+	 * Default constructor.
 	 */
-	public DataInfo(
-			String id,
-			String title,
-			Instrument instrument,
-			Period period,
-			int pipScale,
-			int tickScale,
-			List<OutputInfo> outputs) {
-
-		/* Validate ID. */
-		if (id == null) {
-			String error = "ID can not be null";
-			throw new NullPointerException(error);
-		}
-
-		/* Validate title. */
-		if (title == null) {
-			String error = "Title can not be null";
-			throw new NullPointerException(error);
-		}
-
-		/* Validate instrument and optionally pip and tick scales. */
-		if (instrument == null) {
-			if (pipScale < 0) {
-				String error = "Pip scale must be GE zero when instrument is null";
-				throw new IllegalArgumentException(error);
-			}
-			if (tickScale < 0) {
-				String error = "Tick scale must be GE zero when instrument is null";
-				throw new IllegalArgumentException(error);
-			}
-		}
-
-		/* Validate outputs, not null and sequential starting at zero. */
-		if (outputs == null) {
-			String error = "Information about out`put can not be null";
-			throw new NullPointerException(error);
-		}
-		outputs.sort(Comparator.comparingInt(OutputInfo::getIndex));
-		for (int i = 0; i < outputs.size(); i++) {
-			if (i == 0 && outputs.get(i).getIndex() != 0) {
-				String error = "First output must have index 0";
-				throw new IllegalArgumentException(error);
-			}
-			if (i > 0) {
-				if (outputs.get(i).getIndex() != outputs.get(i - 1).getIndex() + 1) {
-					String error = "Outputs must have consecutive indexes";
-					throw new IllegalArgumentException(error);
-				}
-			}
-		}
-
+	public DataInfo(String id, Period period) {
+		if (id == null) throw new NullPointerException("ID can not be null");
+		if (period == null) throw new NullPointerException("Period can not be null");
 		this.id = id;
-		this.title = title;
-		this.instrument = instrument;
 		this.period = period;
-		if (instrument != null && pipScale < 0) {
-			this.pipScale = instrument.getPipScale();
-		} else {
-			this.pipScale = pipScale;
-		}
-		if (instrument != null && tickScale < 0) {
-			this.tickScale = instrument.getTickScale();
-		} else {
-			this.tickScale = tickScale;
-		}
-		this.outputs = new ArrayList<>(outputs);
+	}
+
+	/**
+	 * Add output information.
+	 *
+	 * @param outputInfo Output information.
+	 */
+	public void addOutputInfo(OutputInfo outputInfo) {
+		outputInfos.add(outputInfo);
+	}
+	/**
+	 * Add output information.
+	 *
+	 * @param name      The output name, for instance <b>Close</b> for the close value of an
+	 *                  {@link Data} instance, not null.
+	 * @param shortName A short name to build a short information string, like for instance <b>C</b>
+	 *                  for the <b>Close</b> value, not null.
+	 * @param title     Title or description, not null.
+	 * @param index     The index of this output in the {@link Data} object, GE zero.
+	 */
+	public void addOutputInfo(String name, String shortName, String title, int index) {
+		OutputInfo outputInfo = new OutputInfo(name, shortName, title, index);
+		outputInfos.add(outputInfo);
 	}
 
 	/**
@@ -153,13 +105,31 @@ public class DataInfo {
 		return id;
 	}
 	/**
+	 * Return the period.
+	 *
+	 * @return The period.
+	 */
+	public Period getPeriod() {
+		return period;
+	}
+
+	/**
 	 * Return the title.
 	 *
 	 * @return The title.
 	 */
 	public String getTitle() {
-		return title;
+		return (title == null ? "" : title);
 	}
+	/**
+	 * Set the title.
+	 *
+	 * @param title The title.
+	 */
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
 	/**
 	 * Return the optional instrument.
 	 *
@@ -169,20 +139,38 @@ public class DataInfo {
 		return instrument;
 	}
 	/**
-	 * Return the period.
+	 * Set the instrument.
 	 *
-	 * @return The period.
+	 * @param instrument The instrument.
 	 */
-	public Period getPeriod() {
-		return period;
+	public void setInstrument(Instrument instrument) {
+		this.instrument = instrument;
+		if (instrument != null) {
+			if (pipScale == null) {
+				pipScale = instrument.getPipScale();
+			}
+			if (tickScale == null) {
+				tickScale = instrument.getTickScale();
+			}
+		}
 	}
+
 	/**
 	 * Return the pip scale.
 	 *
 	 * @return The pip scale.
 	 */
 	public int getPipScale() {
-		return pipScale;
+		return (pipScale == null ? 0 : pipScale);
+	}
+	/**
+	 * Set the pip scale.
+	 *
+	 * @param pipScale The pip scale.
+	 */
+	public void setPipScale(int pipScale) {
+		if (pipScale < 0) throw new IllegalArgumentException("Invalid pip scale: " + pipScale);
+		this.pipScale = pipScale;
 	}
 	/**
 	 * Return the tick scale.
@@ -190,7 +178,16 @@ public class DataInfo {
 	 * @return The tick scale.
 	 */
 	public int getTickScale() {
-		return tickScale;
+		return (tickScale == null ? 0 : tickScale);
+	}
+	/**
+	 * Set the tick scale.
+	 *
+	 * @param tickScale The tick scale.
+	 */
+	public void setTickScale(int tickScale) {
+		if (tickScale < 0) throw new IllegalArgumentException("Invalid tick scale: " + tickScale);
+		this.tickScale = tickScale;
 	}
 
 	/**
@@ -200,7 +197,7 @@ public class DataInfo {
 	 * @return The output info at the given index.
 	 */
 	public OutputInfo getOutputInfo(int index) {
-		return outputs.get(index);
+		return outputInfos.get(index);
 	}
 	/**
 	 * Returns the size or number of outputs.
@@ -208,6 +205,6 @@ public class DataInfo {
 	 * @return The size or number of outputs.
 	 */
 	public int size() {
-		return outputs.size();
+		return outputInfos.size();
 	}
 }
