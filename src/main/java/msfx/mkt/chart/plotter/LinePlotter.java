@@ -49,29 +49,17 @@ public class LinePlotter extends DataPlotter {
 	 *
 	 * @param index      The index in the data array of values.
 	 * @param dataSource The data source.
-	 */
-	public LinePlotter(int index, DataSource dataSource) {
-		this(index, dataSource, "Value", "V", "Data value");
-	}
-
-	/**
-	 * Constructor.
-	 *
-	 * @param index      The index in the data array of values.
-	 * @param dataSource The data source.
-	 * @param name       The output information name.
-	 * @param shortName  The output information short name.
-	 * @param title      The output information title.
+	 * @param id         The output information name.
+	 * @param name       The output information short name.
 	 */
 	public LinePlotter(
 			int index,
 			DataSource dataSource,
-			String name,
-			String shortName,
-			String title) {
+			String id,
+			String name) {
 		super(dataSource);
 		this.index = index;
-		this.outputInfo = new OutputInfo(name, shortName, title, 0);
+		this.outputInfo = new OutputInfo(id, name, 0);
 	}
 
 	/**
@@ -83,8 +71,7 @@ public class LinePlotter extends DataPlotter {
 	@Override
 	public double[] getValues(int index) {
 		Data data = getDataSources().get(0).getData(index);
-		double[] values = data.getValues();
-		return new double[] { values[this.index] };
+		return new double[] { data.getValue(this.index) };
 	}
 
 	/**
@@ -143,7 +130,7 @@ public class LinePlotter extends DataPlotter {
 				int dataIndex = indexes.get(index);
 				if (dataIndex < 0) continue;
 				Data data = source.getData(dataIndex);
-				double[] values = data.getValues();
+				double value = data.getValue(LinePlotter.this.index);
 
 				/*
 				 * The X coordinate to start painting, and the Y coordinate for each value.
@@ -151,7 +138,7 @@ public class LinePlotter extends DataPlotter {
 				 */
 
 				double x = context.getCoordinateX(index);
-				double y = context.getCoordinateY(values[LinePlotter.this.index]);
+				double y = context.getCoordinateY(value);
 
 				seg.points.add(new Point2D(x, y));
 			}
@@ -171,7 +158,7 @@ public class LinePlotter extends DataPlotter {
 		double height = context.getHeight();
 
 		GraphicsContext gc = context.getGraphicsContext();
-		gc.setLineWidth(1.0);
+		gc.setLineWidth(0.5);
 
 		/*
 		 * Start and end periods to iterate.
@@ -255,7 +242,7 @@ public class LinePlotter extends DataPlotter {
 				int dataIndex = indexes.get(index);
 				if (dataIndex < 0) continue;
 				Data data = source.getData(dataIndex);
-				double[] values = data.getValues();
+				double value = data.getValue(this.index);
 
 				/*
 				 * The X coordinate to start painting, and the Y coordinate for each value.
@@ -263,7 +250,7 @@ public class LinePlotter extends DataPlotter {
 				 */
 
 				double x = context.getCoordinateX(index);
-				double y = context.getCoordinateY(values[this.index]);
+				double y = context.getCoordinateY(value);
 				Point2D point = new Point2D(x, y);
 				if (p_prev == null) p_prev = point;
 				p_curr = point;

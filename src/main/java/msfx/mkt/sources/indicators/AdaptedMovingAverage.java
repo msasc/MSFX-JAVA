@@ -31,10 +31,10 @@ public class AdaptedMovingAverage extends IndicatorSource {
 
 	public enum Type { SMA, EMA, WMA }
 
-	private int averagePeriods = 100;
-	private int smoothPeriods = 5;
-	private int adapterPeriods = 10;
-	private int finalSmoothPeriods = 5;
+	private int averagePeriods = 20;
+	private int smoothPeriods = 0;
+	private int adapterPeriods = 0;
+	private int finalSmoothPeriods = 0;
 
 	private Type averageType = Type.SMA;
 
@@ -116,7 +116,7 @@ public class AdaptedMovingAverage extends IndicatorSource {
 				double periods = dataIndex - startAverage + 1;
 				for (int i = startAverage; i <= dataIndex; i++) {
 					Data source = reqSource.getData(i);
-					values[1] += source.getValues()[sourceIndex];
+					values[1] += source.getValue(sourceIndex);
 				}
 				values[1] /= periods;
 				values[0] = values[1];
@@ -130,7 +130,7 @@ public class AdaptedMovingAverage extends IndicatorSource {
 				double periods = dataIndex - startSmooth + 1;
 				for (int i = startSmooth; i <= dataIndex; i++) {
 					Data average = dataList.get(i);
-					values[2] += average.getValues()[4];
+					values[2] += average.getValue(4);
 				}
 				values[2] /= periods;
 				values[0] = values[2];
@@ -145,9 +145,9 @@ public class AdaptedMovingAverage extends IndicatorSource {
 				double periods = dataIndex - startAdapt + 1;
 				for (int i = startAdapt; i <= dataIndex; i++) {
 					Data source = reqSource.getData(i);
-					double srcValue = source.getValues()[sourceIndex];
+					double srcValue = source.getValue(sourceIndex);
 					Data average = dataList.get(i);
-					double value = average.getValues()[4];
+					double value = average.getValue(4);
 					double adapt = srcValue - value;
 					values[3] += adapt;
 				}
@@ -163,7 +163,7 @@ public class AdaptedMovingAverage extends IndicatorSource {
 				double periods = dataIndex - startFinalSmooth + 1;
 				for (int i = startFinalSmooth; i <= dataIndex; i++) {
 					Data average = dataList.get(i);
-					values[5] += average.getValues()[4];
+					values[5] += average.getValue(4);
 				}
 				values[5] /= periods;
 				values[0] = values[5];
@@ -171,5 +171,15 @@ public class AdaptedMovingAverage extends IndicatorSource {
 
 		}
 
+		int move = averagePeriods / 2;
+		for (int i_scan = move; i_scan < dataList.size() - move; i_scan++) {
+			int i_data = i_scan - move;
+			Data data = dataList.get(i_data);
+			Data scan = dataList.get(i_scan);
+			data.setValue(0, scan.getValue(0));
+		}
+		for (int i = dataList.size() - move - 1; i < dataList.size(); i++) {
+			dataList.get(i).setValid(false);
+		}
 	}
 }

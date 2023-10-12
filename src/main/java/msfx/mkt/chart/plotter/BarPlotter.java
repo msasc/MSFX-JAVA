@@ -37,9 +37,76 @@ import java.util.List;
 public class BarPlotter extends DataPlotter {
 
 	/**
+	 * Data segment to calculate plot values in parallel.
+	 */
+	private class DataSeg {
+		private int start;
+		private int end;
+		private List<DataPlot> plots;
+		private DataSeg(int start, int end) {
+			this.start = start;
+			this.end = end;
+			this.plots = new ArrayList<>(end - start + 1);
+		}
+	}
+
+	/**
+	 * Values necessary to plot the bar.
+	 */
+	private class DataPlot {
+		private double armLen;
+		private double x_center;
+		private double y_open;
+		private double y_high;
+		private double y_low;
+		private double y_close;
+		private Color color;
+		private boolean valid;
+	}
+
+	/**
+	 * Task to calculate the plot values in parallel.
+	 */
+	private class TaskCalcPlot extends Task {
+		private DataSeg seg;
+		private TaskCalcPlot(DataSeg seg) {
+			this.seg = seg;
+		}
+		@Override
+		public void execute() throws Throwable {
+			for (int index = seg.start; index <= seg.end; index++) {
+				if (index < 0) continue;
+				if (index >= dataSize) continue;
+				int dataIndex = indexes.get(index);
+				if (dataIndex < 0) continue;
+				Data data = source.getData(dataIndex);
+				DataPlot plot = getDataPlot(index, data);
+				seg.plots.add(plot);
+			}
+		}
+	}
+
+	/**
 	 * Output information.
 	 */
 	private OutputInfo[] infos;
+
+	/*
+	 * List of volatile members set at the start of the plot and used all along
+	 * the calculations and final plot of the bar.
+	 */
+
+	private volatile DataSource source;
+	private volatile List<Integer> indexes;
+	private volatile GraphicsContext gc;
+	private volatile PlotContext context;
+	private volatile int startIndex;
+	private volatile int endIndex;
+	private volatile int dataSize;
+	private volatile double periods;
+	private volatile double marginRight;
+	private volatile double marginLeft;
+	private volatile double periodWidth;
 
 	/**
 	 * Constructor.
@@ -49,10 +116,10 @@ public class BarPlotter extends DataPlotter {
 	public BarPlotter(DataSource dataSource) {
 		super(dataSource);
 		infos = new OutputInfo[] {
-				new OutputInfo("Open", "O", "Open value", 0),
-				new OutputInfo("High", "H", "High value", 1),
-				new OutputInfo("Low", "L", "Low value", 2),
-				new OutputInfo("Close", "C", "Close value", 3)
+				new OutputInfo("O", "Open", "Open value", 0),
+				new OutputInfo("H", "High", "High value", 1),
+				new OutputInfo("L", "Low", "Low value", 2),
+				new OutputInfo("C", "Close", "Close value", 3)
 		};
 	}
 
@@ -65,121 +132,69 @@ public class BarPlotter extends DataPlotter {
 	@Override
 	public double[] getValues(int index) {
 		Data data = getDataSources().get(0).getData(index);
-		double[] values = data.getValues();
-		return new double[] { values[0], values[1], values[2], values[3] };
+		double open = data.getValue(Data.OPEN);
+		double high = data.getValue(Data.HIGH);
+		double low = data.getValue(Data.LOW);
+		double close = data.getValue(Data.CLOSE);
+		return new double[] { open, high, low, close };
 	}
 	/**
-	 * Returns the list of output informations for each value of a given index.
+	 * Returns the list of output information for each value of a given index.
 	 *
 	 * @param index The data index.
-	 * @return The list of output informations.
+	 * @return The list of output information.
 	 */
 	@Override
 	public OutputInfo[] getInfos(int index) {
 		return infos;
 	}
 
-	private int startIndex;
-	private int endIndex;
-	private int dataSize;
-	private double periods;
-	private double marginRight;
-	private double marginLeft;
-	private double periodWidth;
+	/**
+	 * Calculate the data plot values.
+	 *
+	 * @param index The global index.
+	 * @param data  The data object.
+	 * @return The plot data.
+	 */
+	private DataPlot getDataPlot(int index, Data data) {
 
-	private class ParallelData {
-		private int start;
-		private int end;
-		private List<ParallelDataPlot> plots;
-		private ParallelData(int start, int end) {
-			this.start = start;
-			this.end = end;
-			this.plots = new ArrayList<>(end - start + 1);
+		double open = data.getValue(Data.OPEN);
+		double high = data.getValue(Data.HIGH);
+		double low = data.getValue(Data.LOW);
+		double close = data.getValue(Data.CLOSE);
+
+		double x = context.getCoordinateX(index);
+		double y_open = context.getCoordinateY(open);
+		double y_high = context.getCoordinateY(high);
+		double y_low = context.getCoordinateY(low);
+		double y_close = context.getCoordinateY(close);
+		boolean bullish = (close >= open);
+		Color color = bullish ? getColorBullish() : getColorBearish();
+
+		double lineWidth = gc.getLineWidth();
+		double x_center = x;
+		if (periodWidth > 1) {
+			x_center += ((periodWidth - lineWidth) / 2);
 		}
-	}
-
-	private class ParallelDataPlot {
-		private double armLen;
-		private double x_center;
-		private double y_open;
-		private double y_high;
-		private double y_low;
-		private double y_close;
-		Color color;
-	}
-
-	private class TaskCalcPlot extends Task {
-
-		private PlotContext context;
-		private ParallelData seg;
-
-		private TaskCalcPlot(PlotContext context, ParallelData seg) {
-			this.context = context;
-			this.seg = seg;
+		x_center = Numbers.round(x_center, 0);
+		double armLen = 0;
+		if (periodWidth >= 3) {
+			armLen = (periodWidth - lineWidth) / 2;
+			armLen = Math.floor(armLen);
+			armLen = Math.min(armLen, 3);
 		}
-		@Override
-		public void execute() throws Throwable {
 
-			DataSource source = getDataSources().get(0);
-			List<Integer> indexes = context.getPlotData().getIndexes(source);
-			GraphicsContext gc = context.getGraphicsContext();
+		DataPlot plot = new DataPlot();
+		plot.valid = data.isValid();
+		plot.color = color;
+		plot.armLen = armLen;
+		plot.x_center = x_center;
+		plot.y_open = y_open;
+		plot.y_high = y_high;
+		plot.y_low = y_low;
+		plot.y_close = y_close;
 
-			for (int index = seg.start; index <= seg.end; index++) {
-				if (index < 0) continue;
-				if (index >= dataSize) continue;
-
-				/*
-				 * Get the data index that corresponds to the period index and, if there is no data for
-				 * that period, skip it.
-				 */
-				int dataIndex = indexes.get(index);
-				if (dataIndex < 0) continue;
-				Data data = source.getData(dataIndex);
-				double[] values = data.getValues();
-
-				/*
-				 * The X coordinate to start painting, and the Y coordinate for each value.
-				 * Also, check whether the OHLC bar is bullish or bearish to get the proper color.
-				 */
-
-				double x = context.getCoordinateX(index);
-				double y_open = context.getCoordinateY(values[Data.OPEN]);
-				double y_high = context.getCoordinateY(values[Data.HIGH]);
-				double y_low = context.getCoordinateY(values[Data.LOW]);
-				double y_close = context.getCoordinateY(values[Data.CLOSE]);
-				boolean bullish = (values[Data.CLOSE] >= values[Data.OPEN]);
-				Color color = bullish ? getColorBullish() : getColorBearish();
-
-				/*
-				 * Get the center of the period.
-				 */
-				double lineWidth = gc.getLineWidth();
-				double x_center = x;
-				if (periodWidth > 1) {
-					x_center += ((periodWidth - lineWidth) / 2);
-				}
-				x_center = Numbers.round(x_center, 0);
-				double armLen = 0;
-				if (periodWidth >= 3) {
-					armLen = (periodWidth - lineWidth) / 2;
-					armLen = Math.floor(armLen);
-					armLen = Math.min(armLen, 3);
-				}
-
-				ParallelDataPlot plot = new ParallelDataPlot();
-				plot.color = color;
-				plot.armLen = armLen;
-				plot.x_center = x_center;
-				plot.y_open = y_open;
-				plot.y_high = y_high;
-				plot.y_low = y_low;
-				plot.y_close = y_close;
-
-				seg.plots.add(plot);
-
-			}
-
-		}
+		return plot;
 	}
 
 	/**
@@ -190,24 +205,18 @@ public class BarPlotter extends DataPlotter {
 	@Override
 	public void plot(PlotContext context) {
 
-		double width = context.getWidth();
-
-		GraphicsContext gc = context.getGraphicsContext();
+		this.source = getDataSources().get(0);
+		this.indexes = context.getPlotData().getIndexes(source);
+		this.gc = context.getGraphicsContext();
+		this.context = context;
+		this.startIndex = context.getPlotData().getStartIndex();
+		this.endIndex = context.getPlotData().getEndIndex();
+		this.dataSize = context.getPlotData().getDataSize();
+		this.periods = context.getPlotData().getPeriods();
+		this.marginRight = context.getMarginRight();
+		this.marginLeft = context.getMarginLeft();
+		this.periodWidth = (context.getWidth() - marginLeft - marginRight) / periods;
 		gc.setLineWidth(1.0);
-
-		/*
-		 * Start and end periods to iterate.
-		 * Calculate the available width per period in pixels.
-		 * If the available width is less than 3, then the bat will be a single vertical line.
-		 */
-
-		startIndex = context.getPlotData().getStartIndex();
-		endIndex = context.getPlotData().getEndIndex();
-		dataSize = context.getPlotData().getDataSize();
-		periods = context.getPlotData().getPeriods();
-		marginRight = context.getMarginRight();
-		marginLeft = context.getMarginLeft();
-		periodWidth = (width - marginLeft - marginRight) / periods;
 
 		/*
 		 * Determine whether to plot concurrently. The number of concurrent segments will be the
@@ -217,20 +226,17 @@ public class BarPlotter extends DataPlotter {
 
 		int parallelism = context.getPlotPool().getParallelism();
 		int periodsPerSegment = (int) (periods / parallelism);
-		boolean parallel = periodsPerSegment >= 500;
+		boolean parallel = periodsPerSegment >= 1000;
 
 		if (parallel) {
 
-			/*
-			 * Build the list of segments to calculate concurrently and their correspondent tasks,
-			 * and execute them.
-			 */
+			/* Build the list of segments to calculate concurrently and the tasks. */
 			List<TaskCalcPlot> tasks = new ArrayList<>();
 			int start = startIndex;
 			int end = start + periodsPerSegment - 1;
 			while (true) {
-				ParallelData seg = new ParallelData(start, end);
-				tasks.add(new TaskCalcPlot(context, seg));
+				DataSeg seg = new DataSeg(start, end);
+				tasks.add(new TaskCalcPlot(seg));
 				start = end + 1;
 				if (start > endIndex) {
 					break;
@@ -242,89 +248,47 @@ public class BarPlotter extends DataPlotter {
 			}
 			context.getPlotPool().execute(tasks);
 
-			/*
-			 * Do plot.
-			 */
+			/* Do plot. */
 			for (TaskCalcPlot task : tasks) {
-				List<ParallelDataPlot> plots = task.seg.plots;
-				for (ParallelDataPlot plot : plots) {
-					gc.setStroke(plot.color);
-					gc.strokeLine(plot.x_center, plot.y_high, plot.x_center, plot.y_low);
-					if (plot.armLen > 0) {
-						gc.strokeLine(
-								plot.x_center - plot.armLen, plot.y_open,
-								plot.x_center, plot.y_open);
-						gc.strokeLine(
-								plot.x_center, plot.y_close,
-								plot.x_center + plot.armLen, plot.y_close);
-					}
+				List<DataPlot> plots = task.seg.plots;
+				for (DataPlot plot : plots) {
+					if (plot.valid) plot(plot);
 				}
 			}
 
 		} else {
-			plot(context, startIndex, endIndex);
+			plot(startIndex, endIndex);
 		}
 	}
 
-	private void plot(PlotContext context, int start, int end) {
-
-		DataSource source = getDataSources().get(0);
-		List<Integer> indexes = context.getPlotData().getIndexes(source);
-		GraphicsContext gc = context.getGraphicsContext();
-
+	/**
+	 * Plot sequentially.
+	 *
+	 * @param start Start index.
+	 * @param end   End index.
+	 */
+	private void plot(int start, int end) {
 		for (int index = start; index <= end; index++) {
-
 			if (index < 0) continue;
 			if (index >= dataSize) continue;
-
-			/*
-			 * Get the data index that corresponds to the period index and, if there is no data for
-			 * that period, skip it.
-			 */
 			int dataIndex = indexes.get(index);
 			if (dataIndex < 0) continue;
-			Data data = source.getData(dataIndex);
-			double[] values = data.getValues();
+			DataPlot plot = getDataPlot(index, source.getData(dataIndex));
+			if (plot.valid) plot(plot);
+		}
+	}
 
-			/*
-			 * The X coordinate to start painting, and the Y coordinate for each value.
-			 * Also, check whether the OHLC bar is bullish or bearish to get the proper color.
-			 */
-
-			double x = context.getCoordinateX(index);
-			double y_open = context.getCoordinateY(values[Data.OPEN]);
-			double y_high = context.getCoordinateY(values[Data.HIGH]);
-			double y_low = context.getCoordinateY(values[Data.LOW]);
-			double y_close = context.getCoordinateY(values[Data.CLOSE]);
-			boolean bullish = (values[Data.CLOSE] >= values[Data.OPEN]);
-			Color color = bullish ? getColorBullish() : getColorBearish();
-
-			/*
-			 * Get the center of the period.
-			 */
-			double lineWidth = gc.getLineWidth();
-			double x_center = x;
-			if (periodWidth > 1) {
-				x_center += ((periodWidth - lineWidth) / 2);
-			}
-			x_center = Numbers.round(x_center, 0);
-			double armLen = 0;
-			if (periodWidth >= 3) {
-				armLen = (periodWidth - lineWidth) / 2;
-				armLen = Math.floor(armLen);
-				armLen = Math.min(armLen, 3);
-			}
-
-			/*
-			 * Do plot.
-			 */
-			gc.setStroke(color);
-			gc.strokeLine(x_center, y_high, x_center, y_low);
-			if (armLen > 0) {
-				gc.strokeLine(x_center - armLen, y_open, x_center, y_open);
-				gc.strokeLine(x_center, y_close, x_center + armLen, y_close);
-			}
-
+	/**
+	 * Plot using the data plot info.
+	 *
+	 * @param plot Data plot info.
+	 */
+	private void plot(DataPlot plot) {
+		gc.setStroke(plot.color);
+		gc.strokeLine(plot.x_center, plot.y_high, plot.x_center, plot.y_low);
+		if (plot.armLen > 0) {
+			gc.strokeLine(plot.x_center - plot.armLen, plot.y_open, plot.x_center, plot.y_open);
+			gc.strokeLine(plot.x_center, plot.y_close, plot.x_center + plot.armLen, plot.y_close);
 		}
 	}
 }

@@ -16,6 +16,7 @@
 
 package msfx.mkt.info;
 
+import msfx.lib.util.funtion.Function;
 import msfx.mkt.Data;
 
 /**
@@ -26,39 +27,75 @@ import msfx.mkt.Data;
 public class OutputInfo {
 
 	/**
-	 * The output name, for instance <b>Close</b> for the close value of an
-	 * {@link Data} instance.
+	 * ID or short name.
+	 */
+	private final String id;
+	/**
+	 * The name of the output.
 	 */
 	private final String name;
 	/**
-	 * A short name to build a short information string, like for instance <b>C</b> for the
-	 * <b>Close</b> value.
-	 */
-	private final String shortName;
-	/**
-	 * Title or description.
+	 * Optional title.
 	 */
 	private final String title;
 	/**
-	 * The index of this output in the data object.
+	 * The index of this output in the output data object.
 	 */
 	private final int index;
+	/**
+	 * Optional function when the output is a calculated value on the data object.
+	 */
+	private final Function.P1<Double, Data> function;
 
 	/**
-	 * Constructor.
+	 * Short constructor with an index.
 	 *
-	 * @param name      The output name, for instance <b>Close</b> for the close value of an
-	 *                  {@link Data} instance, not null.
-	 * @param shortName A short name to build a short information string, like for instance <b>C</b>
-	 *                  for the <b>Close</b> value, not null.
-	 * @param title     Title or description, not null.
-	 * @param index     The index of this output in the {@link Data} object, GE zero.
+	 * @param id    ID.
+	 * @param name  Name.
+	 * @param index Index.
 	 */
-	public OutputInfo(String name, String shortName, String title, int index) {
+	public OutputInfo(String id, String name, int index) {
+		this(id, name, name, index);
+	}
+	/**
+	 * Constructor with an index.
+	 *
+	 * @param id    ID.
+	 * @param name  Name.
+	 * @param title Title.
+	 * @param index Index.
+	 */
+	public OutputInfo(String id, String name, String title, int index) {
+		this.id = id;
 		this.name = name;
-		this.shortName = shortName;
-		this.title = title;
 		this.index = index;
+		this.title = title;
+		this.function = null;
+	}
+	/**
+	 * Short constructor with a function.
+	 *
+	 * @param id       ID.
+	 * @param name     Name.
+	 * @param function Function.
+	 */
+	public OutputInfo(String id, String name, Function.P1<Double, Data> function) {
+		this(id, name, name, function);
+	}
+	/**
+	 * Constructor with a function.
+	 *
+	 * @param id       ID.
+	 * @param name     Name.
+	 * @param title    Title.
+	 * @param function Function.
+	 */
+	public OutputInfo(String id, String name, String title, Function.P1<Double, Data> function) {
+		this.id = id;
+		this.name = name;
+		this.index = -1;
+		this.title = title;
+		this.function = function;
 	}
 
 	/**
@@ -67,16 +104,16 @@ public class OutputInfo {
 	 *
 	 * @return The output name.
 	 */
-	public String getName() {
-		return name;
+	public String getId() {
+		return id;
 	}
 	/**
 	 * Returns the short name.
 	 *
 	 * @return The short name.
 	 */
-	public String getShortName() {
-		return shortName;
+	public String getName() {
+		return name;
 	}
 	/**
 	 * Returns the title or description.
@@ -94,6 +131,14 @@ public class OutputInfo {
 	public int getIndex() {
 		return index;
 	}
+	/**
+	 * Returns the function to calculate the output based on the data object.
+	 *
+	 * @return The function.
+	 */
+	public Function.P1<Double, Data> getFunction() {
+		return function;
+	}
 
 	/**
 	 * Returns a string representation of this output info.
@@ -104,7 +149,7 @@ public class OutputInfo {
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		b.append("[");
-		b.append(getName());
+		b.append(getId());
 		b.append(", ");
 		b.append(getIndex());
 		b.append("]");

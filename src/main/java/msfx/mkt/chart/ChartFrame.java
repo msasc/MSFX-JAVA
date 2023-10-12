@@ -501,7 +501,9 @@ public class ChartFrame {
 			plot.plotters.add(plotter);
 			for (DataSource source : plotter.getDataSources()) {
 				if (source instanceof IndicatorSource indicatorSource) {
-					indicatorSource.calculate(plotData);
+					if (!plotData.contains(indicatorSource)) {
+						indicatorSource.calculate(plotData);
+					}
 				}
 				plotData.addDataSource(source);
 			}
@@ -1078,9 +1080,9 @@ public class ChartFrame {
 				for (OutputInfo info : infos) {
 					int i = info.getIndex();
 					strValue = Strings.toString(values[i], scale);
-					String name = info.getShortName();
+					String id = info.getId();
 					textFlow.getChildren().add(FX.getText("  ", textFont));
-					textFlow.getChildren().add(FX.getText(name + ": " + strValue, textFont));
+					textFlow.getChildren().add(FX.getText(id + ": " + strValue, textFont));
 				}
 			}
 		}

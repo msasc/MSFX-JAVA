@@ -24,6 +24,12 @@ package msfx.lib.util.funtion;
 public interface Function {
 	/**
 	 * @param <R>  Return type.
+	 */
+	public interface P0<R> {
+		R call();
+	}
+	/**
+	 * @param <R>  Return type.
 	 * @param <P1> Type of parameter 1
 	 */
 	public interface P1<R, P1> {

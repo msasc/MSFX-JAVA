@@ -79,6 +79,16 @@ public class PlotData {
 		}
 	}
 	/**
+	 * Check whether this plot data contains the argument data source.
+	 *
+	 * @param dataSource Tha data source to check whether it is contained.
+	 * @return A boolean.
+	 */
+	public boolean contains(DataSource dataSource) {
+		return dataSources.contains(dataSource);
+	}
+
+	/**
 	 * Returns the start index.
 	 *
 	 * @return The start index.

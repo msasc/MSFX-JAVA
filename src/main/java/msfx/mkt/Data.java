@@ -101,11 +101,15 @@ public class Data {
 	 * Start time in epoch seconds.
 	 */
 	private final int time;
+	/**
+	 * A boolean that indicates whether the data is valid to be plotted.
+	 */
+	private boolean valid = true;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param time Start time in epoch seconds.
+	 * @param time   Start time in epoch seconds.
 	 * @param values Array of data values.
 	 */
 	public Data(int time, double... values) {
@@ -123,14 +127,6 @@ public class Data {
 	}
 
 	/**
-	 * Returns the array of values.
-	 *
-	 * @return The array of values.
-	 */
-	public double[] getValues() {
-		return values;
-	}
-	/**
 	 * Returns the value at the given index.
 	 *
 	 * @param index The index.
@@ -138,6 +134,32 @@ public class Data {
 	 */
 	public double getValue(int index) {
 		return values[index];
+	}
+	/**
+	 * Set the value.
+	 *
+	 * @param index Index.
+	 * @param value Value.
+	 */
+	public void setValue(int index, double value) {
+		values[index] = value;
+	}
+
+	/**
+	 * Check whether the data is valid.
+	 *
+	 * @return A boolean.
+	 */
+	public boolean isValid() {
+		return valid;
+	}
+	/**
+	 * Set whether the data is valid.
+	 *
+	 * @param valid A boolean.
+	 */
+	public void setValid(boolean valid) {
+		this.valid = valid;
 	}
 
 	/**

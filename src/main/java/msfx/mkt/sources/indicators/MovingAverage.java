@@ -16,46 +16,48 @@
 
 package msfx.mkt.sources.indicators;
 
-import msfx.lib.util.funtion.Function;
 import msfx.mkt.Data;
 import msfx.mkt.DataSource;
 import msfx.mkt.IndicatorSource;
 import msfx.mkt.chart.PlotData;
 import msfx.mkt.info.IndicatorInfo;
-import org.apache.commons.math3.analysis.function.Gaussian;
-import org.apache.commons.math3.fitting.GaussianCurveFitter;
-import org.apache.commons.math3.fitting.WeightedObservedPoints;
 
 import java.util.List;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-public class SourceFitter extends IndicatorSource {
+/**
+ * Generic multi-moving-average indicator.
+ *
+ * @author Miquel Sas
+ */
+public class MovingAverage extends IndicatorSource {
 
 	/**
-	 * Number of periods.
+	 * Average types.
 	 */
-	private int periods = 10;
+	public enum Type { SMA, EMA, WMA }
+
 	/**
-	 * Fitter.
+	 * Average type.
 	 */
-	private String fitter = "GAUSSIAN";
+	private Type averageType = Type.SMA;
 	/**
-	 * Function to retrieve the data.
+	 * Average periods.
 	 */
-	private Function.P1<Double, Data> fdata = (d) -> {
-		double high = d.getValue(Data.HIGH);
-		double low = d.getValue(Data.LOW);
-		return (high + low) / 2;
-	};
+	private int averagePeriods = 50;
+	/**
+	 * Index in the source data.
+	 */
+	private int sourceIndex = Data.CLOSE;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param indicatorInfo Information about the data elements of the source.
+	 * @param indicatorInfo Information about the indicator source.
 	 */
-	public SourceFitter(IndicatorInfo indicatorInfo) {
+	public MovingAverage(IndicatorInfo indicatorInfo) {
 		super(indicatorInfo);
 	}
+
 	/**
 	 * Recalculate the indicator source for the given indexes.
 	 *
@@ -63,32 +65,36 @@ public class SourceFitter extends IndicatorSource {
 	 * @param startIndex Start index.
 	 * @param endIndex   End index.
 	 */
-	@Override
 	public void calculate(PlotData plotData, int startIndex, int endIndex) {
 
-		/* Check the required source. */
+		// Check the required source.
 		if (getRequiredSources().size() != 1) {
 			throw new IllegalStateException("Required source not properly set");
 		}
 
-		/* Required source and indexes. */
+		// Required source and indexes.
 		DataSource reqSource = getRequiredSources().get(0);
 		List<Integer> dataIndexes = plotData.getIndexes(reqSource);
 		int dataSize = plotData.getDataSize();
 
-		GaussianCurveFitter fitter = GaussianCurveFitter.create();
-		WeightedObservedPoints points = new WeightedObservedPoints();
-
-		/* Iterate indexes. */
+		// Iterate indexes.
 		for (int index = startIndex; index <= endIndex; index++) {
 
-			/* Check whether the index is valid and get the required source data index.	 */
+			/*
+			 * Check whether the index is valid.
+			 * Get the required source data index.
+			 * Get the start index for the average.
+			 */
 			if (index < 0) continue;
 			if (index >= dataSize) continue;
 			int dataIndex = dataIndexes.get(index);
 			if (dataIndex < 0) continue;
+			int startAverage = dataIndex - averagePeriods;
+			if (startAverage < 0) startAverage = 0;
 
-			/* Last data (dataIndex) to calculate. */
+			/*
+			 * Create thea timed data. Either set or add it.
+			 */
 			int time = reqSource.getData(dataIndex).getTime();
 			double[] values = new double[1];
 			Data data = new Data(time, values);
@@ -98,25 +104,28 @@ public class SourceFitter extends IndicatorSource {
 				dataList.set(dataIndex, data);
 			}
 
-			/* Get the start indexes for average, smooth and adapter. */
-			int startFit = dataIndex - periods;
-			if (startFit < 0) startFit = 0;
-			if (dataIndex - startFit + 1 < 3) continue;
-
-			for (int i = startFit; i <= dataIndex; i++) {
-				Data source = reqSource.getData(i);
-				double value = fdata.call(source);
-				points.add(i, value);
+			/*
+			 * Calculate the average value.
+			 */
+			if (averageType == Type.SMA) {
+				double periods = dataIndex - startAverage + 1;
+				for (int i = startAverage; i <= dataIndex; i++) {
+					Data source = reqSource.getData(i);
+					values[0] += source.getValue(sourceIndex);
+				}
+				values[0] /= periods;
 			}
-
-			double[] coeff = fitter.fit(points.toList());
-			Gaussian gaussian = new Gaussian(coeff[0], coeff[1], coeff[2]);
-
-//			for (int i = startFit; i <= dataIndex; i++) {
-//				Data d = dataList.get(i);
-//				d.getValues()[0] = gaussian.value(i);
-//			}
-			data.setValue(0, gaussian.value(dataIndex));
+			if (averageType == Type.WMA) {
+				double weight = 1;
+				double totalWeight = 0;
+				for (int i = startAverage; i <= dataIndex; i++) {
+					Data source = reqSource.getData(i);
+					values[0] += (source.getValue(sourceIndex) * weight);
+					totalWeight += weight;
+					weight += 1;
+				}
+				values[0] /= totalWeight;
+			}
 		}
 	}
 }
