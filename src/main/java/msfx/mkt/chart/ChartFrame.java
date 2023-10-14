@@ -1080,7 +1080,7 @@ public class ChartFrame {
 				for (OutputInfo info : infos) {
 					int i = info.getIndex();
 					strValue = Strings.toString(values[i], scale);
-					String id = info.getId();
+					String id = info.getName();
 					textFlow.getChildren().add(FX.getText("  ", textFont));
 					textFlow.getChildren().add(FX.getText(id + ": " + strValue, textFont));
 				}

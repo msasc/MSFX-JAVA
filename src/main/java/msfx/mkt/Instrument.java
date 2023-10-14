@@ -26,80 +26,48 @@ import java.util.Currency;
 public class Instrument {
 
 	/**
-	 * Instrument unique identifier, normally in the context of a provider of financial data.
+	 * Instrument unique name, normally in the context of a provider of financial data.
 	 */
-	private final String id;
+	private String name;
 	/**
 	 * Instrument title.
 	 */
-	private final String title;
+	private String title;
 	/**
 	 * The value of a pip, e.g. 0.0001 for the currency pair EUR/USD.
 	 */
-	private final double pipValue;
+	private double pipValue;
 	/**
 	 * The scale of a pip.
 	 */
-	private final int pipScale;
+	private int pipScale;
 	/**
 	 * The minimum value of a tick, e.g., 0.00001 for the currency pair EUR/USD.
 	 */
-	private final double tickValue;
+	private double tickValue;
 	/**
 	 * The scale of a tick.
 	 */
-	private final int tickScale;
+	private int tickScale;
 	/**
 	 * The volume scale if applicable.
 	 */
-	private final int volumeScale;
+	private int volumeScale;
 	/**
 	 * Primary currency. For the currency pair EUR/UDS it would be EUR. For the index DAX it would
 	 * be EUR, while for the NASDAQ it would USD.
 	 */
-	private final Currency primaryCurrency;
+	private Currency primaryCurrency;
 	/**
 	 * Secondary currency. For the currency pair EUR/UDS it would be USD, while for an index it can
 	 * be null or the primary one.
 	 */
-	private final Currency secondaryCurrency;
+	private Currency secondaryCurrency;
 
 	/**
-	 * @param id                Instrument unique identifier, normally in the context of a provider
-	 *                          of financial data.
-	 * @param title             Instrument title.
-	 * @param pipValue          The minimum value of a pip, e.g. 0.0001 for the currency pair
-	 *                          EUR/USD.
-	 * @param pipScale          The scale of a pip.
-	 * @param tickValue         The minimum value of a tick, e.g., 0.00001 for the currency pair
-	 *                          EUR/USD.
-	 * @param tickScale         The scale of a tick.
-	 * @param volumeScale       The volume scale if applicable.
-	 * @param primaryCurrency   Primary currency. For the currency pair EUR/UDS it would be EUR. For
-	 *                          the index DAX it would be EUR, while for the NASDAQ it would USD.
-	 * @param secondaryCurrency Secondary currency. For the currency pair EUR/UDS it would be USD,
-	 *                          while for an index it can be null or the primary one.
+	 * Default constructor.
 	 */
-	public Instrument(
-			String id,
-			String title,
-			double pipValue,
-			int pipScale,
-			double tickValue,
-			int tickScale,
-			int volumeScale,
-			Currency primaryCurrency,
-			Currency secondaryCurrency) {
-		this.id = id;
-		this.title = title;
-		this.pipValue = pipValue;
-		this.pipScale = pipScale;
-		this.tickValue = tickValue;
-		this.tickScale = tickScale;
-		this.volumeScale = volumeScale;
-		this.primaryCurrency = primaryCurrency;
-		this.secondaryCurrency = secondaryCurrency;
-	}
+	public Instrument() { }
 
 	/**
 	 * Returns the instrument unique identifier, normally in the context of a provider of financial
@@ -107,9 +75,18 @@ public class Instrument {
 	 *
 	 * @return The id.
 	 */
-	public String getId() {
-		return id;
+	public String getName() {
+		return name;
 	}
+	/**
+	 * Set the name.
+	 *
+	 * @param name The name.
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	/**
 	 * Returns instrument title.
 	 *
@@ -119,7 +96,16 @@ public class Instrument {
 		return title;
 	}
 	/**
-	 * Returns the minimum value of a pip, e.g. 0.0001 for the currency pair EUR/USD.
+	 * Set the title.
+	 *
+	 * @param title The title.
+	 */
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	/**
+	 * Returns the minimum value of a pip, e.g., 0.0001 for the currency pair EUR/USD.
 	 *
 	 * @return The minimum value of a pip.
 	 */
@@ -127,13 +113,31 @@ public class Instrument {
 		return pipValue;
 	}
 	/**
-	 * returns the scale of a pip.
+	 * Set the pip value.
+	 *
+	 * @param pipValue The pip value.
+	 */
+	public void setPipValue(double pipValue) {
+		this.pipValue = pipValue;
+	}
+
+	/**
+	 * Returns the scale of a pip.
 	 *
 	 * @return The scale of a pip.
 	 */
 	public int getPipScale() {
 		return pipScale;
 	}
+	/**
+	 * Set the pip scale.
+	 *
+	 * @param pipScale
+	 */
+	public void setPipScale(int pipScale) {
+		this.pipScale = pipScale;
+	}
+
 	/**
 	 * Returns the minimum value of a tick, e.g., 0.00001 for the currency pair EUR/USD.
 	 *
@@ -143,6 +147,15 @@ public class Instrument {
 		return tickValue;
 	}
 	/**
+	 * Set the tick value.
+	 *
+	 * @param tickValue
+	 */
+	public void setTickValue(double tickValue) {
+		this.tickValue = tickValue;
+	}
+
+	/**
 	 * The scale of a tick.
 	 *
 	 * @return The scale of a tick.
@@ -151,6 +164,15 @@ public class Instrument {
 		return tickScale;
 	}
 	/**
+	 * Set the tick scale.
+	 *
+	 * @param tickScale
+	 */
+	public void setTickScale(int tickScale) {
+		this.tickScale = tickScale;
+	}
+
+	/**
 	 * Returns the volume scale.
 	 *
 	 * @return The volume scale.
@@ -158,6 +180,15 @@ public class Instrument {
 	public int getVolumeScale() {
 		return volumeScale;
 	}
+	/**
+	 * Set the volume scale.
+	 *
+	 * @param volumeScale
+	 */
+	public void setVolumeScale(int volumeScale) {
+		this.volumeScale = volumeScale;
+	}
+
 	/**
 	 * Returns the primary currency. For the currency pair EUR/UDS it would be EUR. For the index
 	 * DAX it would
@@ -169,6 +200,15 @@ public class Instrument {
 		return primaryCurrency;
 	}
 	/**
+	 * Set the primary currency.
+	 *
+	 * @param primaryCurrency The primary currency.
+	 */
+	public void setPrimaryCurrency(Currency primaryCurrency) {
+		this.primaryCurrency = primaryCurrency;
+	}
+
+	/**
 	 * Returns the secondary currency. For the currency pair EUR/UDS it would be USD, while for an
 	 * index it can
 	 * be null or the primary one.
@@ -177,5 +217,13 @@ public class Instrument {
 	 */
 	public Currency getSecondaryCurrency() {
 		return secondaryCurrency;
+	}
+	/**
+	 * Set the secondary currency.
+	 *
+	 * @param secondaryCurrency The secondary currency.
+	 */
+	public void setSecondaryCurrency(Currency secondaryCurrency) {
+		this.secondaryCurrency = secondaryCurrency;
 	}
 }

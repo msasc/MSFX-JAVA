@@ -27,9 +27,7 @@ import msfx.mkt.chart.plotter.BarPlotter;
 import msfx.mkt.chart.plotter.LinePlotter;
 import msfx.mkt.info.IndicatorInfo;
 import msfx.mkt.sources.data.VChartSource;
-import msfx.mkt.sources.indicators.AdaptedMovingAverage;
 import msfx.mkt.sources.indicators.MovingAverage;
-import msfx.mkt.sources.indicators.SourceFitter;
 
 import java.io.File;
 
@@ -60,11 +58,11 @@ public class TestChart extends Application {
 		BarPlotter b_plotter = new BarPlotter(source);
 		LinePlotter l_plotter = new LinePlotter(Data.CLOSE, source, "C", "Close");
 
-		IndicatorInfo indInf = new IndicatorInfo("ASAVG", source.getInfo().getPeriod());
-		IndicatorSource average = new MovingAverage(indInf);
-		average.addRequiredSource(source);
+		IndicatorSource avg = new MovingAverage(source);
+		avg.addRequiredSource(source);
+		avg.getInfo().getParameter("Periods").setValue(30);
 
-		LinePlotter a_plotter = new LinePlotter(0, average, "Avg", "Average");
+		LinePlotter a_plotter = new LinePlotter(0, avg, "Avg", "Average");
 
 		ChartFrame frame = new ChartFrame(b_plotter, a_plotter);
 //		frame.addPlotFrame(a_plotter);

@@ -18,6 +18,7 @@ package msfx.mkt.info;
 
 import msfx.lib.util.Numbers;
 import msfx.lib.util.Strings;
+import msfx.lib.util.funtion.Consumer;
 
 import java.math.BigDecimal;
 
@@ -33,79 +34,103 @@ public class Parameter {
 	private static final String BOOLEAN = "BOOLEAN";
 
 	/**
-	 * ID.
-	 */
-	private final String id;
-	/**
 	 * Name.
 	 */
-	private final String name;
+	private String name;
+	/**
+	 * Title.
+	 */
+	private String title;
 	/**
 	 * Type, NUMBER, STRING or BOOLEAN.
 	 */
-	private final String type;
+	private String type;
 	/**
 	 * Number of decimal places when this parameter is a number.
 	 */
-	private final int decimals;
+	private int decimals;
 	/**
 	 * List of possible values.
 	 */
-	private final Object[] possibleValues;
+	private Object[] possibleValues = new Object[0];
 
 	/**
 	 * Value.
 	 */
 	private Object value;
+	/**
+	 * Value function to be called when the parameter value is set.
+	 */
+	private Consumer.P1<Object> valueFunction;
 
 	/**
 	 * Constructor.
-	 *
-	 * @param id   ID, not null.
-	 * @param name Name.
-	 * @param type Type: NUMBER, STRING or BOOLEAN.
 	 */
-	public Parameter(String id, String name, String type) {
-		this(id, name, type, (type.equals(NUMBER) ? 0 : -1));
+	public Parameter() { }
+
+	/**
+	 * Return the name.
+	 *
+	 * @return The name.
+	 */
+	public String getName() {
+		return name;
 	}
 	/**
-	 * Constructor.
+	 * Set the name.
 	 *
-	 * @param id             ID, not null.
-	 * @param name           Name.
-	 * @param type           Type: NUMBER, STRING or BOOLEAN.
-	 * @param decimals       Decimal places if it is a number.
-	 * @param possibleValues List of possible values.
+	 * @param name The name.
 	 */
-	public Parameter(
-			String id,
-			String name,
-			String type,
-			int decimals,
-			Object... possibleValues) {
-		if (id == null) {
-			throw new NullPointerException("ID can not be null");
-		}
-		if (name == null) {
-			throw new NullPointerException("Name can not be null");
-		}
-		if (type == null) {
-			throw new NullPointerException("Type can not be null");
-		}
+	public void setName(String name) {
+		this.name = name;
+	}
+	/**
+	 * Return the title.
+	 *
+	 * @return The title.
+	 */
+	public String getTitle() {
+		return title;
+	}
+	/**
+	 * Set the title.
+	 *
+	 * @param title The title.
+	 */
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	/**
+	 * Return the type.
+	 *
+	 * @return The type.
+	 */
+	public String getType() {
+		return type;
+	}
+	/**
+	 * Set the type, either NUMBER, STRING or BOOLEAN.
+	 *
+	 * @param type The type.
+	 */
+	public void setType(String type) {
 		type = type.toUpperCase();
 		if (!Strings.in(type, NUMBER, STRING, BOOLEAN)) {
 			throw new IllegalArgumentException("Invalid type: " + type);
 		}
+		this.type = type;
+	}
+	public Object[] getPossibleValues() {
+		return possibleValues;
+	}
+
+	public void setPossibleValues(Object... possibleValues) {
 		if (possibleValues.length > 0) {
 			for (int i = 0; i < possibleValues.length; i++) {
 				Object value = possibleValues[i];
 				validate(type, value, "Possible value (" + i + ")");
 			}
 		}
-		this.id = id;
-		this.name = name;
-		this.type = type;
-		this.decimals = decimals;
 		this.possibleValues = possibleValues;
 	}
 
@@ -117,9 +142,23 @@ public class Parameter {
 	public void setValue(Object value) {
 		validate(type, value, "Value");
 		validatePossibleValues(value);
-		this.value = Numbers.getBigDecimal((Number) value, decimals);
+		if (type.equals("NUMBER")) {
+			this.value = Numbers.getBigDecimal((Number) value, decimals);
+		} else {
+			this.value = value;
+		}
+		if (valueFunction != null) {
+			valueFunction.call(this.value);
+		}
 	}
-
+	/**
+	 * Set the value function to be called when the parameter value is set.
+	 *
+	 * @param valueFunction The value function or consumer.
+	 */
+	public void setValueFunction(Consumer.P1<Object> valueFunction) {
+		this.valueFunction = valueFunction;
+	}
 	/**
 	 * Returns the value if it is a number.
 	 *
@@ -131,11 +170,17 @@ public class Parameter {
 		}
 		return (BigDecimal) value;
 	}
-
+	/**
+	 * Returns the number of decimals when the value is a number.
+	 *
+	 * @return The number of decimal places.
+	 */
 	public int getDecimals() {
 		return decimals;
 	}
-
+	public void setDecimals(int decimals) {
+		this.decimals = decimals;
+	}
 	/**
 	 * Returns the value if it is a string.
 	 *
@@ -147,7 +192,6 @@ public class Parameter {
 		}
 		return (String) value;
 	}
-
 	/**
 	 * Returns the value if it is a boolean.
 	 *

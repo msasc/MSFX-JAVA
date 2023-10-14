@@ -27,71 +27,47 @@ import msfx.mkt.Data;
 public class OutputInfo {
 
 	/**
-	 * ID or short name.
-	 */
-	private final String id;
-	/**
 	 * The name of the output.
 	 */
-	private final String name;
+	private String name;
 	/**
 	 * Optional title.
 	 */
-	private final String title;
+	private String title;
 	/**
 	 * The index of this output in the output data object.
 	 */
-	private final int index;
+	private int index;
 	/**
 	 * Optional function when the output is a calculated value on the data object.
 	 */
-	private final Function.P1<Double, Data> function;
+	private Function.P1<Double, Data> function;
 
 	/**
-	 * Short constructor with an index.
-	 *
-	 * @param id    ID.
-	 * @param name  Name.
-	 * @param index Index.
+	 * Default constructor.
 	 */
-	public OutputInfo(String id, String name, int index) {
-		this(id, name, name, index);
-	}
+	public OutputInfo() { }
 	/**
 	 * Constructor with an index.
 	 *
-	 * @param id    ID.
 	 * @param name  Name.
 	 * @param title Title.
 	 * @param index Index.
 	 */
-	public OutputInfo(String id, String name, String title, int index) {
-		this.id = id;
+	public OutputInfo(String name, String title, int index) {
 		this.name = name;
 		this.index = index;
 		this.title = title;
 		this.function = null;
 	}
 	/**
-	 * Short constructor with a function.
-	 *
-	 * @param id       ID.
-	 * @param name     Name.
-	 * @param function Function.
-	 */
-	public OutputInfo(String id, String name, Function.P1<Double, Data> function) {
-		this(id, name, name, function);
-	}
-	/**
 	 * Constructor with a function.
 	 *
-	 * @param id       ID.
 	 * @param name     Name.
 	 * @param title    Title.
 	 * @param function Function.
 	 */
-	public OutputInfo(String id, String name, String title, Function.P1<Double, Data> function) {
-		this.id = id;
+	public OutputInfo(String name, String title, Function.P1<Double, Data> function) {
 		this.name = name;
 		this.index = -1;
 		this.title = title;
@@ -99,21 +75,20 @@ public class OutputInfo {
 	}
 
 	/**
-	 * Returns the output name, for instance <b>Close</b> for the close value of an {@link Data}
-	 * instance.
-	 *
-	 * @return The output name.
-	 */
-	public String getId() {
-		return id;
-	}
-	/**
 	 * Returns the short name.
 	 *
 	 * @return The short name.
 	 */
 	public String getName() {
 		return name;
+	}
+	/**
+	 * Set the name.
+	 *
+	 * @param name The name.
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 	/**
 	 * Returns the title or description.
@@ -124,6 +99,14 @@ public class OutputInfo {
 		return title;
 	}
 	/**
+	 * Set the title.
+	 *
+	 * @param title
+	 */
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	/**
 	 * Returns the index of this output in the {@link Data} object, GE zero.
 	 *
 	 * @return The index in the {@link Data} object.
@@ -132,12 +115,28 @@ public class OutputInfo {
 		return index;
 	}
 	/**
+	 * Set the index of the output.
+	 *
+	 * @param index The index.
+	 */
+	public void setIndex(int index) {
+		this.index = index;
+	}
+	/**
 	 * Returns the function to calculate the output based on the data object.
 	 *
 	 * @return The function.
 	 */
 	public Function.P1<Double, Data> getFunction() {
 		return function;
+	}
+	/**
+	 * Set the function to calculate the output.
+	 *
+	 * @param function The function.
+	 */
+	public void setFunction(Function.P1<Double, Data> function) {
+		this.function = function;
 	}
 
 	/**
@@ -149,7 +148,7 @@ public class OutputInfo {
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		b.append("[");
-		b.append(getId());
+		b.append(getName());
 		b.append(", ");
 		b.append(getIndex());
 		b.append("]");

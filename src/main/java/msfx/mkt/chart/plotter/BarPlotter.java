@@ -116,10 +116,10 @@ public class BarPlotter extends DataPlotter {
 	public BarPlotter(DataSource dataSource) {
 		super(dataSource);
 		infos = new OutputInfo[] {
-				new OutputInfo("O", "Open", "Open value", 0),
-				new OutputInfo("H", "High", "High value", 1),
-				new OutputInfo("L", "Low", "Low value", 2),
-				new OutputInfo("C", "Close", "Close value", 3)
+				new OutputInfo("O", "Open", 0),
+				new OutputInfo("H", "High", 1),
+				new OutputInfo("L", "Low", 2),
+				new OutputInfo("C", "Close", 3)
 		};
 	}
 

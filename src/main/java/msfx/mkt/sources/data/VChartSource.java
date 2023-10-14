@@ -248,21 +248,27 @@ public class VChartSource {
 		double tickValue = Double.parseDouble(s_tick_value);
 		int tickScale = new BigDecimal(s_tick_value).scale();
 
-		Instrument instr = new Instrument(
-				name, name, pipValue, pipScale, tickValue, tickScale, 0, curr_a, curr_b);
+		Instrument instr = new Instrument();
+		instr.setName(name);
+		instr.setTitle(name);
+		instr.setPipValue(pipValue);
+		instr.setPipScale(pipScale);
+		instr.setTickValue(tickValue);
+		instr.setTickScale(tickScale);
+		instr.setVolumeScale(0);
+		instr.setPrimaryCurrency(curr_a);
+		instr.setSecondaryCurrency(curr_b);
 
-		String infoName = name + " - " + period.toString();
-
-		DataInfo info = new DataInfo(infoName, period);
+		DataInfo info = new DataInfo();
+		info.setPeriod(period);
+		info.setTitle(name + " - " + period.toString());
+		info.setInstrument(instr);
 
 		info.addOutputInfo("Open", "O", "Open value", 0);
 		info.addOutputInfo("High", "H", "High value", 1);
 		info.addOutputInfo("Low", "L", "Low value", 2);
 		info.addOutputInfo("Close", "C", "Close value", 3);
 		info.addOutputInfo("Volume", "V", "Volume value", 4);
-
-		info.setTitle(infoName);
-		info.setInstrument(instr);
 
 		return info;
 	}

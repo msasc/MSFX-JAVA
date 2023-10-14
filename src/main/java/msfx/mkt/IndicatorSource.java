@@ -40,11 +40,9 @@ public abstract class IndicatorSource extends DataSource {
 
 	/**
 	 * Constructor.
-	 *
-	 * @param indicatorInfo Information about the data elements of the source.
 	 */
-	public IndicatorSource(IndicatorInfo indicatorInfo) {
-		super(indicatorInfo);
+	public IndicatorSource() {
+		super(new IndicatorInfo());
 	}
 
 	/**
@@ -54,6 +52,15 @@ public abstract class IndicatorSource extends DataSource {
 	 */
 	public void addRequiredSource(DataSource source) {
 		requiredSources.add(source);
+	}
+
+	/**
+	 * Return this indocator info.
+	 *
+	 * @return The indicator indo.
+	 */
+	public IndicatorInfo getInfo() {
+		return (IndicatorInfo) super.getInfo();
 	}
 	/**
 	 * Return the list of required sources.

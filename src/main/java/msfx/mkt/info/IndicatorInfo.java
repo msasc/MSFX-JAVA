@@ -19,12 +19,50 @@ package msfx.mkt.info;
 import msfx.mkt.Instrument;
 import msfx.mkt.Period;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class IndicatorInfo extends DataInfo {
 
+	/**
+	 * List of parameters.
+	 */
+	private List<Parameter> parameters = new ArrayList<>();
 
-	public IndicatorInfo(String id, Period period) {
-		super(id, period);
+	/**
+	 * Default constructor
+	 */
+	public IndicatorInfo() { }
+
+	/**
+	 * Add a parameters.
+	 *
+	 * @param parameter The parameter to add.
+	 */
+	public void addParameter(Parameter parameter) {
+		parameters.add(parameter);
+	}
+	/**
+	 * Return the parameter with the given name.
+	 *
+	 * @param name The name of the parameter.
+	 * @return The parameter with the given name.
+	 */
+	public Parameter getParameter(String name) {
+		for (Parameter parameter : parameters) {
+			if (parameter.getName().equals(name)) {
+				return parameter;
+			}
+		}
+		throw new IllegalArgumentException("Invalid parameter name: " + name);
+	}
+	/**
+	 * Returns the list of parameters.
+	 *
+	 * @return The list of parameters.
+	 */
+	public List<Parameter> getParameters() {
+		return Collections.unmodifiableList(parameters);
 	}
 }

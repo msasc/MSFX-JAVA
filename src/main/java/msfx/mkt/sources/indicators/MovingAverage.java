@@ -20,7 +20,9 @@ import msfx.mkt.Data;
 import msfx.mkt.DataSource;
 import msfx.mkt.IndicatorSource;
 import msfx.mkt.chart.PlotData;
+import msfx.mkt.info.DataInfo;
 import msfx.mkt.info.IndicatorInfo;
+import msfx.mkt.info.Parameter;
 
 import java.util.List;
 
@@ -52,10 +54,39 @@ public class MovingAverage extends IndicatorSource {
 	/**
 	 * Constructor.
 	 *
-	 * @param indicatorInfo Information about the indicator source.
+	 * @param source The data source to builg the indicator.
 	 */
-	public MovingAverage(IndicatorInfo indicatorInfo) {
-		super(indicatorInfo);
+	public MovingAverage(DataSource source) {
+		super();
+
+		DataInfo srcInfo = source.getInfo();
+		getInfo().setPeriod(srcInfo.getPeriod());
+		getInfo().setInstrument(srcInfo.getInstrument());
+		getInfo().setPipScale(srcInfo.getPipScale());
+		getInfo().setTickScale(srcInfo.getTickScale());
+
+		Parameter parameter;
+
+		parameter = new Parameter();
+		parameter.setName("Periods");
+		parameter.setTitle("Number of periods");
+		parameter.setType("NUMBER");
+		parameter.setDecimals(0);
+		parameter.setValueFunction((periods) -> averagePeriods = ((Number) periods).intValue());
+		getInfo().addParameter(parameter);
+
+		parameter = new Parameter();
+		parameter.setName("Type");
+		parameter.setTitle("Average type");
+		parameter.setType("STRING");
+		parameter.setPossibleValues("SMA", "EMA", "WMA", "HMA");
+		parameter.setValue("SMA");
+		getInfo().addParameter(parameter);
+
+
+
+
+
 	}
 
 	/**

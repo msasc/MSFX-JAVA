@@ -32,9 +32,9 @@ import java.util.List;
 public class DataInfo {
 
 	/**
-	 * ID or name.
+	 * A short name.
 	 */
-	private String id;
+	private String name;
 	/**
 	 * A title or description.
 	 */
@@ -66,12 +66,7 @@ public class DataInfo {
 	/**
 	 * Default constructor.
 	 */
-	public DataInfo(String id, Period period) {
-		if (id == null) throw new NullPointerException("ID can not be null");
-		if (period == null) throw new NullPointerException("Period can not be null");
-		this.id = id;
-		this.period = period;
-	}
+	public DataInfo() { }
 
 	/**
 	 * Add output information.
@@ -92,17 +87,25 @@ public class DataInfo {
 	 * @param index     The index of this output in the {@link Data} object, GE zero.
 	 */
 	public void addOutputInfo(String name, String shortName, String title, int index) {
-		OutputInfo outputInfo = new OutputInfo(name, shortName, title, index);
+		OutputInfo outputInfo = new OutputInfo(name, title, index);
 		outputInfos.add(outputInfo);
 	}
 
 	/**
-	 * Return the ID or name.
+	 * Return the name.
 	 *
-	 * @return The ID or name.
+	 * @return The name
 	 */
-	public String getId() {
-		return id;
+	public String getName() {
+		return name;
+	}
+	/**
+	 * Set the name.
+	 *
+	 * @param name The name.
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 	/**
 	 * Return the period.
@@ -112,7 +115,14 @@ public class DataInfo {
 	public Period getPeriod() {
 		return period;
 	}
-
+	/**
+	 * Set the period.
+	 *
+	 * @param period The time period.
+	 */
+	public void setPeriod(Period period) {
+		this.period = period;
+	}
 	/**
 	 * Return the title.
 	 *
