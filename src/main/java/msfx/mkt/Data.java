@@ -136,6 +136,14 @@ public class Data {
 		return values[index];
 	}
 	/**
+	 * Returns the list of values.
+	 *
+	 * @return The list of values.
+	 */
+	public double[] getValues() {
+		return values;
+	}
+	/**
 	 * Set the value.
 	 *
 	 * @param index Index.

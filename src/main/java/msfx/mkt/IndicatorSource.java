@@ -55,7 +55,7 @@ public abstract class IndicatorSource extends DataSource {
 	}
 
 	/**
-	 * Return this indocator info.
+	 * Return this indicator info.
 	 *
 	 * @return The indicator indo.
 	 */

@@ -60,7 +60,10 @@ public class TestChart extends Application {
 
 		IndicatorSource avg = new MovingAverage(source);
 		avg.addRequiredSource(source);
-		avg.getInfo().getParameter("Periods").setValue(30);
+		avg.getInfo().getParameter(MovingAverage.PARAM_SOURCE).setValue("MEDIAN");
+		avg.getInfo().getParameter(MovingAverage.PARAM_TYPE).setValue("WMA");
+		avg.getInfo().getParameter(MovingAverage.PARAM_PERIOD).setValue(55);
+		avg.getInfo().getParameter(MovingAverage.PARAM_SMOOTH).setValue(13);
 
 		LinePlotter a_plotter = new LinePlotter(0, avg, "Avg", "Average");
 

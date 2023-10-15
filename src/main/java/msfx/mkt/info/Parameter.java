@@ -19,6 +19,7 @@ package msfx.mkt.info;
 import msfx.lib.util.Numbers;
 import msfx.lib.util.Strings;
 import msfx.lib.util.funtion.Consumer;
+import msfx.lib.util.funtion.Function;
 
 import java.math.BigDecimal;
 
@@ -29,10 +30,14 @@ import java.math.BigDecimal;
  */
 public class Parameter {
 
-	private static final String NUMBER = "NUMBER";
-	private static final String STRING = "STRING";
-	private static final String BOOLEAN = "BOOLEAN";
+	public static final String NUMBER = "NUMBER";
+	public static final String STRING = "STRING";
+	public static final String BOOLEAN = "BOOLEAN";
 
+	/**
+	 * ID.
+	 */
+	private String id;
 	/**
 	 * Name.
 	 */
@@ -44,11 +49,11 @@ public class Parameter {
 	/**
 	 * Type, NUMBER, STRING or BOOLEAN.
 	 */
-	private String type;
+	private String type = NUMBER;
 	/**
 	 * Number of decimal places when this parameter is a number.
 	 */
-	private int decimals;
+	private int decimals = 0;
 	/**
 	 * List of possible values.
 	 */
@@ -62,12 +67,32 @@ public class Parameter {
 	 * Value function to be called when the parameter value is set.
 	 */
 	private Consumer.P1<Object> valueFunction;
+	/**
+	 * Validator function to be called when the parameter value is set.
+	 */
+	private Function.P1<Boolean, Object> validatorFunction;
 
 	/**
 	 * Constructor.
 	 */
 	public Parameter() { }
 
+	/**
+	 * Return the ID.
+	 *
+	 * @return The ID.
+	 */
+	public String getId() {
+		return id;
+	}
+	/**
+	 * Set the ID:
+	 *
+	 * @param id The ID.
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
 	/**
 	 * Return the name.
 	 *

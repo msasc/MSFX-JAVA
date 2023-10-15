@@ -46,16 +46,16 @@ public class IndicatorInfo extends DataInfo {
 	/**
 	 * Return the parameter with the given name.
 	 *
-	 * @param name The name of the parameter.
+	 * @param id The name of the parameter.
 	 * @return The parameter with the given name.
 	 */
-	public Parameter getParameter(String name) {
+	public Parameter getParameter(String id) {
 		for (Parameter parameter : parameters) {
-			if (parameter.getName().equals(name)) {
+			if (parameter.getId().equals(id)) {
 				return parameter;
 			}
 		}
-		throw new IllegalArgumentException("Invalid parameter name: " + name);
+		throw new IllegalArgumentException("Invalid parameter name: " + id);
 	}
 	/**
 	 * Returns the list of parameters.

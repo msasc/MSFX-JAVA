@@ -741,6 +741,14 @@ public class Strings {
 		return b.toString();
 	}
 
+	public static <T> String[] toStringArray(T[] a) {
+		String[] s = new String[a.length];
+		for (int i = 0; i < a.length; i++) {
+			s[i] = a[i].toString();
+		}
+		return s;
+	}
+
 	/**
 	 * Return the boolean value as a string.
 	 *
