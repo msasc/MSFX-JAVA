@@ -228,6 +228,8 @@ public class LinePlotter extends DataPlotter {
 			DataSource source = getDataSources().get(0);
 			List<Integer> indexes = context.getPlotData().getIndexes(source);
 
+			Data data_prev = null;
+			Data data_curr = null;
 			Point2D p_prev = null;
 			Point2D p_curr = null;
 			for (int index = startIndex; index <= endIndex; index++) {
@@ -241,8 +243,14 @@ public class LinePlotter extends DataPlotter {
 				 */
 				int dataIndex = indexes.get(index);
 				if (dataIndex < 0) continue;
-				Data data = source.getData(dataIndex);
-				double value = data.getValue(this.index);
+				data_curr = source.getData(dataIndex);
+				if (data_prev == null) data_prev = data_curr;
+
+				/* Skip if any of both data is not valid. */
+				if (!data_prev.isValid() || !data_curr.isValid()) continue;
+
+				/* Current value. */
+				double value = data_curr.getValue(this.index);
 
 				/*
 				 * The X coordinate to start painting, and the Y coordinate for each value.
@@ -257,6 +265,8 @@ public class LinePlotter extends DataPlotter {
 				if (!p_curr.equals(p_prev)) {
 					gc.strokeLine(p_prev.getX(), p_prev.getY(), p_curr.getX(), p_curr.getY());
 				}
+
+				data_prev = data_curr;
 				p_prev = p_curr;
 			}
 		}

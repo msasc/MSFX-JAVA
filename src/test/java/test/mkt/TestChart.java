@@ -58,16 +58,27 @@ public class TestChart extends Application {
 		BarPlotter b_plotter = new BarPlotter(source);
 		LinePlotter l_plotter = new LinePlotter(Data.CLOSE, source, "C", "Close");
 
-		IndicatorSource avg = new MovingAverage(source);
-		avg.addRequiredSource(source);
-		avg.getInfo().getParameter(MovingAverage.PARAM_SOURCE).setValue("MEDIAN");
-		avg.getInfo().getParameter(MovingAverage.PARAM_TYPE).setValue("WMA");
-		avg.getInfo().getParameter(MovingAverage.PARAM_PERIOD).setValue(55);
-		avg.getInfo().getParameter(MovingAverage.PARAM_SMOOTH).setValue(13);
+		IndicatorSource avg_a = new MovingAverage(source);
+		avg_a.addRequiredSource(source);
+		avg_a.getInfo().getParameter(MovingAverage.PARAM_SOURCE).setValue("CLOSE");
+		avg_a.getInfo().getParameter(MovingAverage.PARAM_TYPE).setValue("WMA");
+		avg_a.getInfo().getParameter(MovingAverage.PARAM_PERIOD).setValue(377);
+		avg_a.getInfo().getParameter(MovingAverage.PARAM_SMOOTH).setValue(55);
+		avg_a.getInfo().getParameter(MovingAverage.PARAM_FIT).setValue(true);
 
-		LinePlotter a_plotter = new LinePlotter(0, avg, "Avg", "Average");
+		LinePlotter a_plotter = new LinePlotter(0, avg_a, "Avg", "Average");
 
-		ChartFrame frame = new ChartFrame(b_plotter, a_plotter);
+		IndicatorSource avg_b = new MovingAverage(source);
+		avg_b.addRequiredSource(source);
+		avg_b.getInfo().getParameter(MovingAverage.PARAM_SOURCE).setValue("CLOSE");
+		avg_b.getInfo().getParameter(MovingAverage.PARAM_TYPE).setValue("WMA");
+		avg_b.getInfo().getParameter(MovingAverage.PARAM_PERIOD).setValue(55);
+		avg_b.getInfo().getParameter(MovingAverage.PARAM_SMOOTH).setValue(13);
+		avg_b.getInfo().getParameter(MovingAverage.PARAM_FIT).setValue(true);
+
+		LinePlotter c_plotter = new LinePlotter(0, avg_b, "Avg", "Average");
+
+		ChartFrame frame = new ChartFrame(b_plotter, a_plotter, c_plotter);
 //		frame.addPlotFrame(a_plotter);
 
 		Scene scene = new Scene(frame.getPaneFrame());

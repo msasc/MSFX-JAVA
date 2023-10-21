@@ -97,6 +97,23 @@ public class MovingAverage extends IndicatorSource {
 	private boolean fit = false;
 
 	/**
+	 * Index within the data object of the result calculation.
+	 */
+	private int indexResult = -1;
+	/**
+	 * Index within the data object of the average calculation.
+	 */
+	private int indexAverage = -1;
+	/**
+	 * Index within the data object of the smooth calculation.
+	 */
+	private int indexSmooth = -1;
+	/**
+	 * Index within the data object of the fit calculation.
+	 */
+	private int indexFit = -1;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param source The data source to builg the indicator.
@@ -114,7 +131,7 @@ public class MovingAverage extends IndicatorSource {
 
 		Parameter parameter;
 
-		// Source value.
+		/* Source value. */
 		parameter = new Parameter();
 		parameter.setId(PARAM_SOURCE);
 		parameter.setName(StringRes.get("avgSourceName", "Source", loc));
@@ -145,7 +162,7 @@ public class MovingAverage extends IndicatorSource {
 		parameter.setValue("CLOSE");
 		getInfo().addParameter(parameter);
 
-		// Number of periods.
+		/* Number of periods. */
 		parameter = new Parameter();
 		parameter.setId(PARAM_PERIOD);
 		parameter.setName(StringRes.get("avgPeriodName", "Period", loc));
@@ -155,7 +172,7 @@ public class MovingAverage extends IndicatorSource {
 		parameter.setValue(30);
 		getInfo().addParameter(parameter);
 
-		// Average type: SMA, EMA or WMA.
+		/* Average type: SMA, EMA or WMA. */
 		parameter = new Parameter();
 		parameter.setId(PARAM_TYPE);
 		parameter.setName(StringRes.get("avgTypeName", "Type", loc));
@@ -168,7 +185,7 @@ public class MovingAverage extends IndicatorSource {
 		parameter.setValue("SMA");
 		getInfo().addParameter(parameter);
 
-		// Smooth.
+		/* Smooth. */
 		parameter = new Parameter();
 		parameter.setId(PARAM_SMOOTH);
 		parameter.setName(StringRes.get("avgSmoothName", "Smooth", loc));
@@ -177,7 +194,7 @@ public class MovingAverage extends IndicatorSource {
 		parameter.setValue(10);
 		getInfo().addParameter(parameter);
 
-		// Fit by moving the result average to minimize the quadratic error.
+		/* Fit by moving the result average to minimize the quadratic error. */
 		parameter = new Parameter();
 		parameter.setId(PARAM_FIT);
 		parameter.setName(StringRes.get("avgFitterName", "Fit", loc));
@@ -216,13 +233,21 @@ public class MovingAverage extends IndicatorSource {
 		this.source = getRequiredSources().get(0);
 		this.dataIndexes = plotData.getIndexes(source);
 		this.dataSize = plotData.getDataSize();
+
 		this.valuesSize = 2;
+
+		int index = 0;
+		this.indexResult = index++;
+		this.indexAverage = index++;
 		if (this.smoothPeriods > 0) {
 			this.valuesSize++;
+			this.indexSmooth = index++;
 		}
 		if (this.fit) {
 			this.valuesSize++;
+			this.indexFit = index++;
 		}
+
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
 
@@ -248,10 +273,10 @@ public class MovingAverage extends IndicatorSource {
 			double periods = end - start + 1;
 			double[] values = getValues(valuesSize, end, source);
 			for (int i = start; i <= end; i++) {
-				values[1] += sourceValue.call(source.getData(i));
+				values[indexAverage] += sourceValue.call(source.getData(i));
 			}
-			values[1] /= periods;
-			values[0] = values[1];
+			values[indexAverage] /= periods;
+			values[indexResult] = values[indexAverage];
 		}
 		if (smoothPeriods > 0) {
 			for (int index = startIndex; index <= endIndex; index++) {
@@ -259,10 +284,10 @@ public class MovingAverage extends IndicatorSource {
 				double periods = end - start + 1;
 				double[] values = getValues(valuesSize, end, source);
 				for (int i = start; i <= end; i++) {
-					values[2] += dataList.get(i).getValue(1);
+					values[indexSmooth] += dataList.get(i).getValue(1);
 				}
-				values[2] /= periods;
-				values[0] = values[2];
+				values[indexSmooth] /= periods;
+				values[indexResult] = values[indexSmooth];
 			}
 		}
 	}
@@ -280,9 +305,9 @@ public class MovingAverage extends IndicatorSource {
 				double lastAverage = lastData.getValue(1);
 				double nextValue = sourceValue.call(source.getData(i));
 				double average = nextValue * alpha + (1 - alpha) * lastAverage;
-				values[1] = average;
+				values[indexAverage] = average;
 			}
-			values[0] = values[1];
+			values[indexResult] = values[indexAverage];
 		}
 		if (smoothPeriods > 0) {
 			for (int index = startIndex; index <= endIndex; index++) {
@@ -295,9 +320,9 @@ public class MovingAverage extends IndicatorSource {
 					double lastAverage = lastData.getValue(2);
 					double nextValue = dataList.get(i).getValue(1);
 					double average = nextValue * alpha + (1 - alpha) * lastAverage;
-					values[2] = average;
+					values[indexSmooth] = average;
 				}
-				values[0] = values[2];
+				values[indexResult] = values[indexSmooth];
 			}
 		}
 	}
@@ -313,12 +338,12 @@ public class MovingAverage extends IndicatorSource {
 			double weight = 1;
 			double totalWeight = 0;
 			for (int i = start; i <= end; i++) {
-				values[1] += (sourceValue.call(source.getData(i)) * weight);
+				values[indexAverage] += (sourceValue.call(source.getData(i)) * weight);
 				totalWeight += weight;
 				weight += factor;
 			}
-			values[1] /= totalWeight;
-			values[0] = values[1];
+			values[indexAverage] /= totalWeight;
+			values[indexResult] = values[indexAverage];
 		}
 		if (smoothPeriods > 0) {
 			for (int index = startIndex; index <= endIndex; index++) {
@@ -329,12 +354,12 @@ public class MovingAverage extends IndicatorSource {
 				double weight = 1;
 				double totalWeight = 0;
 				for (int i = start; i <= end; i++) {
-					values[2] += (dataList.get(i).getValue(1) * weight);
+					values[indexSmooth] += (dataList.get(i).getValue(1) * weight);
 					totalWeight += weight;
 					weight += factor;
 				}
-				values[2] /= totalWeight;
-				values[0] = values[2];
+				values[indexSmooth] /= totalWeight;
+				values[indexResult] = values[indexSmooth];
 			}
 		}
 	}
@@ -348,16 +373,69 @@ public class MovingAverage extends IndicatorSource {
 		int indexAvg = valuesSize - 2;
 		int indexFit = valuesSize - 1;
 
+		/*
+		 * FIT horizontally.
+		 * A positive increase in the horizontal move means that the average result is moved back.
+		 * Although we know that an average has to be moved back to decrease the quadratic error,
+		 * we will start with a negative increase to verify that the system switches the move and
+		 * finally reaches the minimum.
+		 */
 		double minError = Numbers.MAX_DOUBLE;
-		int horzMove = 0; // Positive translates back.
+		int horzMin = -1;
+		int horzMove = 0;
+		int horzIncr = -1;
+		boolean switched = false;
 
-		// Put the displaced average data in the fit index.
-		double error = 0;
-		for (int i = start; i <= end; i++) {
-			double src = sourceValue.call(source.getData(i));
-			double avg = dataList.get(i + horzMove).getValue(indexAvg);
-			double dif = src - avg;
-			error += (dif * dif);
+		while (true) {
+			double error = 0;
+			for (int i = start; i <= end; i++) {
+				double src = sourceValue.call(source.getData(i));
+				double avg = dataList.get(i + horzMove).getValue(indexAvg);
+				double dif = src - avg;
+				error += (dif * dif);
+			}
+
+			/*
+			 * The error is LT the minimum error.
+			 * - Register the new minimum error.
+			 * - Register the horizontal move of the minimum.
+			 * - Continue moving in the same direction.
+			 */
+			if (error <= minError) {
+				minError = error;
+				horzMin = horzMove;
+				horzMove += horzIncr;
+				continue;
+			}
+
+			/*
+			 * The error is GT the minimum error.
+			 * - If the movement has not been switched, switch it and continue
+			 *   in the opposite direction.
+			 * - If the movement has been switched, just restore the last horizontal
+			 *   move that was minimum.
+			 */
+			if (error > minError) {
+				if (!switched) {
+					horzIncr *= (-1);
+					horzMove += horzIncr;
+					switched = true;
+					continue;
+				} else {
+					horzMove = horzMin;
+					break;
+				}
+			}
+		}
+
+		for (int i = startIndex; i < endIndex - horzMove; i++) {
+			Data dataDst = dataList.get(i);
+			Data dataSrc = dataList.get(i + horzMove);
+			dataDst.setValue(indexFit, dataSrc.getValue(indexResult));
+			dataDst.setValue(indexResult, dataDst.getValue(indexFit));
+		}
+		for (int i = endIndex - horzMove; i <= endIndex; i++) {
+			dataList.get(i).setValid(false);
 		}
 
 	}
