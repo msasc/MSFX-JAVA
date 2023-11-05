@@ -238,7 +238,8 @@ public class VChartSource {
 			unit = Unit.MINUTE;
 		}
 		size = Integer.parseInt(s_size);
-		period = new Period(unit, size);
+
+		period = Period.getPeriod(unit, size);
 
 		String s_pip_value = getStrPipValue();
 		double pipValue = Double.parseDouble(s_pip_value);

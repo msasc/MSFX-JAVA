@@ -49,7 +49,7 @@ public class TestChart extends Application {
 //		if (file == null) System.exit(1);
 //		if (file != null) System.out.println(file);
 
-		File file = new File("D:\\Development\\Databases\\VChart\\ID_DAX_EUR_MIN_005.txt");
+		File file = new File("D:\\Development\\Databases\\VChart\\ID_DJI_USD_DAY_030.txt");
 
 		VChartSource src = new VChartSource(file);
 
@@ -78,7 +78,7 @@ public class TestChart extends Application {
 
 		LinePlotter c_plotter = new LinePlotter(0, avg_b, "Avg", "Average");
 
-		ChartFrame frame = new ChartFrame(b_plotter, a_plotter, c_plotter);
+		ChartFrame frame = new ChartFrame(b_plotter);
 //		frame.addPlotFrame(a_plotter);
 
 		Scene scene = new Scene(frame.getPaneFrame());

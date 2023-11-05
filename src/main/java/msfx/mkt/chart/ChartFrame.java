@@ -48,9 +48,7 @@ import msfx.mkt.Unit;
 import msfx.mkt.info.OutputInfo;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
+import java.util.*;
 
 /**
  * The chart component that manages the vertical layout of several plot areas and a horizontal axis
@@ -1217,8 +1215,32 @@ public class ChartFrame {
 		textFlow.getChildren().add(FX.getText(s_start + " - " + s_end, textFont));
 
 	}
+
 	/**
 	 * Plot the horizontal axis.
+	 * This chart system allows for 5-minute periods to plot even 100 years, so the label to plot
+	 * will depend on the period and on the amount of visible data.
+	 *
+	 * Year label:
+	 * . 2023
+	 *
+	 * Month label:
+	 * .  05
+	 * . 2023
+	 * and if several months of the same year may be shown, for instance:
+	 * .  01     04     07   10   01
+	 * . 2023                    2024
+	 *
+	 * Day label;
+	 * .    01
+	 * . 2023-05
+	 * and if several days of the same month may be shown, for instance:
+	 * .    01     07     14     21     01
+	 * . 2023-05                     2023-06
+	 *
+	 * Hour/minute label:
+	 * .  00:00      06:00      12:00      18:00      00:00
+	 * .2023-05-01                                  2023-05-02
 	 */
 	private void plotHAxis() {
 
@@ -1228,38 +1250,57 @@ public class ChartFrame {
 		/* Get the unit of the plot period. */
 		Unit unit = plotData.getPeriod().getUnit();
 
-		/*
-		 * If the unit is MONTH, will plot:
-		 * 2022-05
-		 *
-		 * If the unit is WEEK or DAY, will plot;
-		 * 2022-05-23
-		 *
-		 * If the unit is HOUR or MINUTE, will plot:
-		 *   12:15
-		 * 2022-05-23
-		 *
-		 * In any case, the width of the bounds will be determined by:
-		 * 2022-05 or 2022-05-23
-		 *
-		 * Calculate the bound to plot the time info.
-		 */
-		Bounds bounds;
-		if (unit == Unit.MONTH) {
-			bounds = FX.getStringBounds("2022-05", textFont);
-		} else {
-			bounds = FX.getStringBounds("2022-05-23", textFont);
-			if (unit == Unit.HOUR || unit == Unit.MINUTE) {
-				/* Add a second line of text and an small separation. */
-				double w = bounds.getWidth();
-				double h = bounds.getHeight() * 2 + 2;
-				bounds = new BoundingBox(0, 0, w, h);
-			}
+		/* Build a map with the possible label bounds. */
+		String key_year = "9999";
+		String key_month_complete = "99/9999";
+		String key_month_partial = "99";
+		String key_day_complete = "99/9999-99";
+		String key_day_partial = "99";
+		String key_minute_complete = "00:00/9999-99-99";
+		String key_minute_partial = "00:00";
+		Map<String, Bounds> boundsMap = new HashMap<>();
+		{
+			double lineSpacing = 2;
+			double width, height;
+			Bounds bounds;
+
+			/* Year. */
+			bounds = FX.getStringBounds("9999", textFont);
+			boundsMap.put(key_year, bounds);
+
+			/* Month complete. */
+			bounds = FX.getStringBounds("9999", textFont);
+			width = bounds.getWidth();
+			height = bounds.getHeight() * 2 + lineSpacing;
+			bounds = new BoundingBox(0, 0, width, height);
+			boundsMap.put(key_month_complete, bounds);
+
+			/* Day complete. */
+			bounds = FX.getStringBounds("9999-99", textFont);
+			width = bounds.getWidth();
+			height = bounds.getHeight() * 2 + lineSpacing;
+			bounds = new BoundingBox(0, 0, width, height);
+			boundsMap.put(key_day_complete, bounds);
+
+			/* Hour/minute complete. */
+			bounds = FX.getStringBounds("9999-99-99", textFont);
+			width = bounds.getWidth();
+			height = bounds.getHeight() * 2 + lineSpacing;
+			bounds = new BoundingBox(0, 0, width, height);
+			boundsMap.put(key_minute_partial, bounds);
+
+			/* Day/month partial. */
+			boundsMap.put(key_month_partial, FX.getStringBounds("99", textFont));
+			boundsMap.put(key_day_partial, FX.getStringBounds("99", textFont));
+
+			/* Hour/minute partial. */
+			boundsMap.put(key_minute_complete, FX.getStringBounds("99:99", textFont));
 		}
 
 		/* Get the first and the last visible times. */
 		LocalDateTime startTime = plotData.getTime(plotData.getStartIndex());
 		LocalDateTime endTime = plotData.getTime(plotData.getEndIndex());
+
 	}
 	/**
 	 * Force a global refresh with a minimal delay so all FX pulses have been processed.
