@@ -131,6 +131,24 @@ public final class Period {
 	}
 
 	/**
+	 * Check whether this period is intraday.
+	 *
+	 * @return A boolean.
+	 */
+	public boolean isIntraDay() {
+		if (this == ONE_MINUTE) return true;
+		if (this == THREE_MINUTES) return true;
+		if (this == FIVE_MINUTES) return true;
+		if (this == FIFTEEN_MINUTES) return true;
+		if (this == THIRTY_MINUTES) return true;
+		if (this == ONE_HOUR) return true;
+		if (this == FOUR_HOURS) return true;
+		if (this == SIX_HOURS) return true;
+		if (this == TWELVE_HOURS) return true;
+		return false;
+	}
+
+	/**
 	 * Returns a string representation.
 	 *
 	 * @return A string representation.

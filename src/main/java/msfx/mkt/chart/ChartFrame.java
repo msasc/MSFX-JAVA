@@ -47,7 +47,9 @@ import msfx.mkt.IndicatorSource;
 import msfx.mkt.Unit;
 import msfx.mkt.info.OutputInfo;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.*;
 
 /**
@@ -1216,6 +1218,14 @@ public class ChartFrame {
 
 	}
 
+	private static final String KEY_YEAR = "9999";
+	private static final String KEY_MONTH_COMPLETE = "99/9999";
+	private static final String KEY_MONTH_PARTIAL = "99";
+	private static final String KEY_DAY_COMPLETE = "99/9999-99";
+	private static final String KEY_DAY_PARTIAL = "99";
+	private static final String KEY_MINUTE_COMPLETE = "00:00/9999-99-99";
+	private static final String KEY_MINUTE_PARTIAL = "00:00";
+
 	/**
 	 * Plot the horizontal axis.
 	 * This chart system allows for 5-minute periods to plot even 100 years, so the label to plot
@@ -1223,21 +1233,12 @@ public class ChartFrame {
 	 *
 	 * Year label:
 	 * . 2023
-	 *
 	 * Month label:
-	 * .  05
-	 * . 2023
-	 * and if several months of the same year may be shown, for instance:
 	 * .  01     04     07   10   01
 	 * . 2023                    2024
-	 *
-	 * Day label;
-	 * .    01
-	 * . 2023-05
-	 * and if several days of the same month may be shown, for instance:
+	 * Day label:
 	 * .    01     07     14     21     01
 	 * . 2023-05                     2023-06
-	 *
 	 * Hour/minute label:
 	 * .  00:00      06:00      12:00      18:00      00:00
 	 * .2023-05-01                                  2023-05-02
@@ -1247,59 +1248,64 @@ public class ChartFrame {
 		/* Use the first plot frame for horizontal calculations. */
 		PlotContext context = new Context(chartPlots.get(0));
 
-		/* Get the unit of the plot period. */
-		Unit unit = plotData.getPeriod().getUnit();
+		/* Get the first and the last visible times. */
+		LocalDateTime startTime = plotData.getTime(plotData.getStartIndex());
+		LocalDateTime endTime = plotData.getTime(plotData.getEndIndex());
+		Period period = Period.between(startTime.toLocalDate(), endTime.toLocalDate());
+		Duration duration = Duration.between(startTime, endTime);
+
+		/* Working variables. */
+		double lineSpacing = 2;
+		double labelSpacing = 5;
+		boolean plotted = false;
+
+		/* Eval year plot. */
+		if (!plotted) {
+			Bounds bounds = FX.getStringBounds("9999", textFont);
+			int years = period.getYears();
+			if (years > 1) {
+				double width = context.getWidth();
+				double count = width / (bounds.getWidth() + labelSpacing);
+				if (count > 1 && count < years) {
+
+				}
+			}
+		}
 
 		/* Build a map with the possible label bounds. */
-		String key_year = "9999";
-		String key_month_complete = "99/9999";
-		String key_month_partial = "99";
-		String key_day_complete = "99/9999-99";
-		String key_day_partial = "99";
-		String key_minute_complete = "00:00/9999-99-99";
-		String key_minute_partial = "00:00";
 		Map<String, Bounds> boundsMap = new HashMap<>();
 		{
-			double lineSpacing = 2;
 			double width, height;
 			Bounds bounds;
-
-			/* Year. */
-			bounds = FX.getStringBounds("9999", textFont);
-			boundsMap.put(key_year, bounds);
 
 			/* Month complete. */
 			bounds = FX.getStringBounds("9999", textFont);
 			width = bounds.getWidth();
 			height = bounds.getHeight() * 2 + lineSpacing;
 			bounds = new BoundingBox(0, 0, width, height);
-			boundsMap.put(key_month_complete, bounds);
+			boundsMap.put(KEY_MONTH_COMPLETE, bounds);
 
 			/* Day complete. */
 			bounds = FX.getStringBounds("9999-99", textFont);
 			width = bounds.getWidth();
 			height = bounds.getHeight() * 2 + lineSpacing;
 			bounds = new BoundingBox(0, 0, width, height);
-			boundsMap.put(key_day_complete, bounds);
+			boundsMap.put(KEY_DAY_COMPLETE, bounds);
 
 			/* Hour/minute complete. */
 			bounds = FX.getStringBounds("9999-99-99", textFont);
 			width = bounds.getWidth();
 			height = bounds.getHeight() * 2 + lineSpacing;
 			bounds = new BoundingBox(0, 0, width, height);
-			boundsMap.put(key_minute_partial, bounds);
+			boundsMap.put(KEY_MINUTE_PARTIAL, bounds);
 
 			/* Day/month partial. */
-			boundsMap.put(key_month_partial, FX.getStringBounds("99", textFont));
-			boundsMap.put(key_day_partial, FX.getStringBounds("99", textFont));
+			boundsMap.put(KEY_MONTH_PARTIAL, FX.getStringBounds("99", textFont));
+			boundsMap.put(KEY_DAY_PARTIAL, FX.getStringBounds("99", textFont));
 
 			/* Hour/minute partial. */
-			boundsMap.put(key_minute_complete, FX.getStringBounds("99:99", textFont));
+			boundsMap.put(KEY_MINUTE_COMPLETE, FX.getStringBounds("99:99", textFont));
 		}
-
-		/* Get the first and the last visible times. */
-		LocalDateTime startTime = plotData.getTime(plotData.getStartIndex());
-		LocalDateTime endTime = plotData.getTime(plotData.getEndIndex());
 
 	}
 	/**
