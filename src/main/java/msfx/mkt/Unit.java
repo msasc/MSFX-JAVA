@@ -43,7 +43,7 @@ public enum Unit {
 	 *
 	 * @param id One char id.
 	 */
-	private Unit(String id) {
+	Unit(String id) {
 		this.id = id;
 	}
 

@@ -234,8 +234,8 @@ public abstract class DBMetaData {
 	/**
 	 * Return a record set with the list of schemas.
 	 *
-	 * @param catalog The filter catalog, can be a string with a LIKE form as '%...%'.
-	 * @param schema  The filter schema, can be a string with a LIKE form as '%...%'.
+	 * @param catalog The filter catalog can be a string with a LIKE form as '%...%'.
+	 * @param schema  The filter schema can be a string with a LIKE form as '%...%'.
 	 * @return The record set of schemas.
 	 * @throws SQLException If an error occurs.
 	 */
@@ -244,8 +244,8 @@ public abstract class DBMetaData {
 	/**
 	 * Return a record set with the list of tables.
 	 *
-	 * @param catalog The filter catalog, can be a string with a LIKE form as '%...%'.
-	 * @param schema  The filter schema, can be a string with a LIKE form as '%...%'.
+	 * @param catalog The filter catalog can be a string with a LIKE form as '%...%'.
+	 * @param schema  The filter schema can be a string with a LIKE form as '%...%'.
 	 * @return The record set of schemas.
 	 * @throws SQLException If an error occurs.
 	 */

@@ -69,7 +69,7 @@ public abstract class Task implements Runnable, Callable<Void> {
 	}
 
 	/**
-	 * Launch the execution tracing state.
+	 * Launch the execution-tracing state.
 	 */
 	protected void executeTask() {
 

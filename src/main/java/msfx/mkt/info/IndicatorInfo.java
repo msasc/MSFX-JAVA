@@ -16,9 +16,6 @@
 
 package msfx.mkt.info;
 
-import msfx.mkt.Instrument;
-import msfx.mkt.Period;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

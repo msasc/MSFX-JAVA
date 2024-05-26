@@ -21,7 +21,6 @@ import msfx.mkt.Instrument;
 import msfx.mkt.Period;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 /**

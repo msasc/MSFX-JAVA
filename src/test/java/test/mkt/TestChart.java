@@ -79,7 +79,7 @@ public class TestChart extends Application {
 		LinePlotter c_plotter = new LinePlotter(0, avg_b, "Avg", "Average");
 
 		ChartFrame frame = new ChartFrame(b_plotter);
-//		frame.addPlotFrame(a_plotter);
+		frame.addPlotFrame(a_plotter);
 
 		Scene scene = new Scene(frame.getPaneFrame());
 		stage.setTitle("Test chart");

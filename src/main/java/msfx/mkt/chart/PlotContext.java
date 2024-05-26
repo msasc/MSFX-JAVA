@@ -21,7 +21,7 @@ import msfx.lib.task.Pool;
 import msfx.lib.util.Numbers;
 
 /**
- * Provides the necessary components to the data plotter to be able to perform the plot task.
+ * Base context to plot on the different chart panes.
  *
  * @author Miquel Sas
  */

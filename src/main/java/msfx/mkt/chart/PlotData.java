@@ -43,7 +43,7 @@ public class PlotData {
 	 */
 	private final List<DataSource> dataSources = new ArrayList<>();
 	/**
-	 * List of effective times including all times al oll data sources.
+	 * List of effective times including all-times al oll data sources.
 	 */
 	private final List<Integer> dataTimes = new ArrayList<>();
 	/**

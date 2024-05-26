@@ -20,45 +20,26 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 
 /**
- * Periods of data, like 5 minutes, 30 minutes, 1 hour, 4 hours, etc.
+ * Periods of data.
  *
  * @author Miquel Sas
  */
-public final class Period {
+public enum Period {
 
-	public static final Period ONE_MINUTE = new Period(Unit.MINUTE, 1);
-	public static final Period THREE_MINUTES = new Period(Unit.MINUTE, 3);
-	public static final Period FIVE_MINUTES = new Period(Unit.MINUTE, 5);
-	public static final Period FIFTEEN_MINUTES = new Period(Unit.MINUTE, 15);
-	public static final Period THIRTY_MINUTES = new Period(Unit.MINUTE, 30);
+	ONE_MINUTE(Unit.MINUTE, 1),
+	THREE_MINUTES(Unit.MINUTE, 3),
+	FIVE_MINUTES(Unit.MINUTE, 5),
+	FIFTEEN_MINUTES(Unit.MINUTE, 15),
+	THIRTY_MINUTES(Unit.MINUTE, 30),
 
-	public static final Period ONE_HOUR = new Period(Unit.HOUR, 1);
-	public static final Period FOUR_HOURS = new Period(Unit.HOUR, 4);
-	public static final Period SIX_HOURS = new Period(Unit.HOUR, 6);
-	public static final Period TWELVE_HOURS = new Period(Unit.HOUR, 12);
+	ONE_HOUR(Unit.HOUR, 1),
+	FOUR_HOURS(Unit.HOUR, 4),
+	SIX_HOURS(Unit.HOUR, 6),
+	TWELVE_HOURS(Unit.HOUR, 12),
 
-	public static final Period DAY = new Period(Unit.DAY, 1);
-	public static final Period WEEK = new Period(Unit.WEEK, 1);
-	public static final Period MONTH = new Period(Unit.MONTH, 1);
-
-	public static Period getPeriod(Unit unit, int size) {
-		if (unit == Unit.MINUTE && size == 1) return ONE_MINUTE;
-		if (unit == Unit.MINUTE && size == 3) return THREE_MINUTES;
-		if (unit == Unit.MINUTE && size == 5) return FIVE_MINUTES;
-		if (unit == Unit.MINUTE && size == 15) return FIFTEEN_MINUTES;
-		if (unit == Unit.MINUTE && size == 30) return THIRTY_MINUTES;
-		if (unit == Unit.HOUR && size == 1) return ONE_HOUR;
-		if (unit == Unit.HOUR && size == 4) return FOUR_HOURS;
-		if (unit == Unit.HOUR && size == 6) return SIX_HOURS;
-		if (unit == Unit.HOUR && size == 12) return TWELVE_HOURS;
-		if (unit == Unit.DAY && size == 1) return DAY;
-		if (unit == Unit.DAY && size == 7) return WEEK;
-		if (unit == Unit.DAY && size == 30) return MONTH;
-		if (unit == Unit.WEEK && size == 1) return WEEK;
-		if (unit == Unit.WEEK && size == 4) return MONTH;
-		if (unit == Unit.MONTH && size == 1) return MONTH;
-		throw new IllegalArgumentException("Invalid unit and/or size: " + unit + " " + size);
-	}
+	DAY(Unit.DAY, 1),
+	WEEK(Unit.WEEK, 1),
+	MONTH(Unit.MONTH, 1);
 
 	/**
 	 * Unit.
@@ -68,24 +49,16 @@ public final class Period {
 	 * The number of units or size.
 	 */
 	private final int size;
-
 	/**
-	 * Public constructor assigning unit and size.
+	 * Constructor assigning unit and size.
 	 *
 	 * @param unit The unit.
 	 * @param size The size or number of units.
 	 */
-	private Period(Unit unit, int size) {
-		if (unit == null) {
-			throw new NullPointerException("Unit can not be null");
-		}
-		if (size <= 0) {
-			throw new IllegalArgumentException("Invalid size: " + size);
-		}
+	Period(Unit unit, int size) {
 		this.unit = unit;
 		this.size = size;
 	}
-
 	/**
 	 * Returns the unit.
 	 *
@@ -163,5 +136,31 @@ public final class Period {
 			b.append("s");
 		}
 		return b.toString();
+	}
+
+	/**
+	 * Returns the proper period given a unit and a size.
+	 *
+	 * @param unit The unit.
+	 * @param size The size.
+	 * @return
+	 */
+	public static Period getPeriod(Unit unit, int size) {
+		if (unit == Unit.MINUTE && size == 1) return ONE_MINUTE;
+		if (unit == Unit.MINUTE && size == 3) return THREE_MINUTES;
+		if (unit == Unit.MINUTE && size == 5) return FIVE_MINUTES;
+		if (unit == Unit.MINUTE && size == 15) return FIFTEEN_MINUTES;
+		if (unit == Unit.MINUTE && size == 30) return THIRTY_MINUTES;
+		if (unit == Unit.HOUR && size == 1) return ONE_HOUR;
+		if (unit == Unit.HOUR && size == 4) return FOUR_HOURS;
+		if (unit == Unit.HOUR && size == 6) return SIX_HOURS;
+		if (unit == Unit.HOUR && size == 12) return TWELVE_HOURS;
+		if (unit == Unit.DAY && size == 1) return DAY;
+		if (unit == Unit.DAY && size == 7) return WEEK;
+		if (unit == Unit.DAY && size == 30) return MONTH;
+		if (unit == Unit.WEEK && size == 1) return WEEK;
+		if (unit == Unit.WEEK && size == 4) return MONTH;
+		if (unit == Unit.MONTH && size == 1) return MONTH;
+		throw new IllegalArgumentException("Invalid unit and/or size: " + unit + " " + size);
 	}
 }

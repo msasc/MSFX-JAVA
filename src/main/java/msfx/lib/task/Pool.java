@@ -157,7 +157,7 @@ public class Pool {
 	}
 
 	/**
-	 * Wait for termination of the collection of tasks submitted.
+	 * Wait for the termination of the tasks in the collection submitted.
 	 *
 	 * @param tasks The collection of tasks to wait for their termination.
 	 */

@@ -17,7 +17,6 @@
 package msfx.mkt.chart;
 
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
@@ -44,7 +43,6 @@ import msfx.lib.util.Strings;
 import msfx.lib.util.funtion.Function;
 import msfx.mkt.DataSource;
 import msfx.mkt.IndicatorSource;
-import msfx.mkt.Unit;
 import msfx.mkt.info.OutputInfo;
 
 import java.time.Duration;
@@ -67,22 +65,6 @@ import java.util.*;
 public class ChartFrame {
 
 	/**
-	 * A pane that has, as its first child, a canvas with the width and height properties binded to
-	 * those of its parent pane.
-	 */
-	private class CanvasPane {
-		private Pane pane;
-		private Canvas canvas;
-		private CanvasPane() {
-			pane = new Pane();
-			canvas = new Canvas();
-			pane.getChildren().add(canvas);
-			canvas.widthProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "width"));
-			canvas.heightProperty().bind(Bindings.selectDouble(canvas.parentProperty(), "height"));
-		}
-	}
-
-	/**
 	 * A border pane that contains an info pane at the top, a plot pane at the center and a
 	 * vertical axis at the right.
 	 */
@@ -102,11 +84,11 @@ public class ChartFrame {
 		/**
 		 * The plot area where the data charts are plotted.
 		 */
-		private CanvasPane chart;
+		private Chart.CanvasPane chart;
 		/**
 		 * The associated vertical axis.
 		 */
-		private CanvasPane vaxis;
+		private Chart.CanvasPane vaxis;
 		/**
 		 * Info pane.
 		 */
@@ -307,7 +289,7 @@ public class ChartFrame {
 	/**
 	 * Horizontal axis.
 	 */
-	private final CanvasPane haxis;
+	private final Chart.CanvasPane haxis;
 
 	/**
 	 * The border pane that contains all the components of the chart frame.
@@ -356,17 +338,6 @@ public class ChartFrame {
 	 * Default background for all components.
 	 */
 	private Background background = new Background(new BackgroundFill(Color.WHITE, null, null));
-	/**
-	 * Functional to get the same border style.
-	 */
-	private Function.P4<Border, Double, Double, Double, Double> border = (t, r, b, l) -> {
-		BorderStroke borderStroke = new BorderStroke(
-				Color.BLACK,
-				BorderStrokeStyle.SOLID,
-				CornerRadii.EMPTY,
-				new BorderWidths(t, r, b, l));
-		return new Border(borderStroke);
-	};
 
 	private double lastX;
 	private ContextMenu contextMenu;
@@ -390,8 +361,8 @@ public class ChartFrame {
 
 
 		/* Horizontal axis in the bottom pane. */
-		haxis = new CanvasPane();
-		haxis.pane.setBorder(border.call(0.5, 0.0, 0.0, 0.0));
+		haxis = new Chart.CanvasPane();
+		haxis.pane.setBorder(Chart.getBorder(0.5, 0.0, 0.0, 0.0));
 		haxis.pane.setPrefHeight((bounds.getHeight() * 2) + 5 + 3);
 		paneFrame.setBottom(haxis.pane);
 
@@ -408,7 +379,7 @@ public class ChartFrame {
 		/* Flow pane on top to handle buttons, viewport and info. */
 		FlowPane flowPane = new FlowPane();
 		flowPane.setId("FRAME-FLOW");
-		flowPane.setBorder(border.call(0.0, 0.0, 0.5, 0.0));
+		flowPane.setBorder(Chart.getBorder(0.0, 0.0, 0.5, 0.0));
 		flowPane.setPrefHeight(buttonHeight);
 
 		/* Buttons zoom-in, zoom-out, move-left, move-right, move-start, move-end. */
@@ -438,7 +409,7 @@ public class ChartFrame {
 	/**
 	 * Add a plot frame.
 	 *
-	 * @param plotters The list of plotters of the frame.
+	 * @param plotters The list of plotters.
 	 */
 	public void addPlotFrame(DataPlotter... plotters) {
 
@@ -448,9 +419,9 @@ public class ChartFrame {
 		plot.plotters = new ArrayList<>();
 		plot.scale = PlotScale.LOGARITHMIC;
 
-		plot.chart = new CanvasPane();
-		plot.vaxis = new CanvasPane();
-		plot.vaxis.pane.setBorder(border.call(0.0, 0.0, 0.0, 0.5));
+		plot.chart = new Chart.CanvasPane();
+		plot.vaxis = new Chart.CanvasPane();
+		plot.vaxis.pane.setBorder(Chart.getBorder(0.0, 0.0, 0.0, 0.5));
 		plot.vaxis.pane.setPrefWidth(50);
 		plot.vaxis.pane.setMinWidth(50);
 
@@ -458,7 +429,7 @@ public class ChartFrame {
 
 		plot.infoPane = new FlowPane();
 		plot.infoPane.setId(getId("FLOW-PANE-CP", plot.index));
-		plot.infoPane.setBorder(border.call(0.0, 0.0, 0.5, 0.0));
+		plot.infoPane.setBorder(Chart.getBorder(0.0, 0.0, 0.5, 0.0));
 		plot.infoPane.setPrefHeight(buttonHeight);
 
 		TextFlow textFlow = new TextFlow();
