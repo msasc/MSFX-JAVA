@@ -27,12 +27,13 @@ import java.util.Set;
  *
  * @author Miquel Sas
  */
+@SuppressWarnings("unchecked")
 public class Properties {
 
 	/**
 	 * The properties map.
 	 */
-	private final Map<Object, Object> properties = new HashMap<>();
+	private final Map<Object, Object> props = new HashMap<>();
 
 	/**
 	 * Constructor.
@@ -43,7 +44,7 @@ public class Properties {
 	 * Clear these properties.
 	 */
 	public void clear() {
-		properties.clear();
+		props.clear();
 	}
 
 	/**
@@ -128,7 +129,6 @@ public class Properties {
 	 * @param key The key.
 	 * @return The typed list.
 	 */
-	@SuppressWarnings("unchecked")
 	public <T> List<T> getList(Object key) {
 		return (List<T>) get(key);
 	}
@@ -138,10 +138,16 @@ public class Properties {
 	 * @param key The key.
 	 * @return The typed map.
 	 */
-	@SuppressWarnings("unchecked")
 	public <K, V> Map<K, V> getMap(Object key) {
 		return (Map<K, V>) get(key);
 	}
+	/**
+	 * Return a property object.
+	 *
+	 * @param key The key.
+	 * @return The property object.
+	 */
+	public Properties getProperties(Object key) { return (Properties) props.get(key); }
 
 	/**
 	 * Return the set of keys.
@@ -149,7 +155,7 @@ public class Properties {
 	 * @return The set of keys.
 	 */
 	public Set<Object> keySet() {
-		return properties.keySet();
+		return props.keySet();
 	}
 
 	/**
@@ -159,7 +165,7 @@ public class Properties {
 	 * @return The stored object.
 	 */
 	public Object get(Object key) {
-		return properties.get(key);
+		return props.get(key);
 	}
 
 	/**
@@ -169,7 +175,7 @@ public class Properties {
 	 * @param value The value.
 	 */
 	public void put(Object key, Object value) {
-		properties.put(key, value);
+		props.put(key, value);
 	}
 	/**
 	 * Put all properties.
@@ -177,7 +183,7 @@ public class Properties {
 	 * @param properties The properties to use to fill.
 	 */
 	public void putAll(Properties properties) {
-		this.properties.putAll(properties.properties);
+		this.props.putAll(properties.props);
 	}
 
 	/**
@@ -187,7 +193,7 @@ public class Properties {
 	 * @return The removed property or null.
 	 */
 	public Object remove(Object key) {
-		return properties.remove(key);
+		return props.remove(key);
 	}
 	/**
 	 * Return the collection of values.
@@ -195,6 +201,6 @@ public class Properties {
 	 * @return The values.
 	 */
 	public Collection<Object> values() {
-		return properties.values();
+		return props.values();
 	}
 }

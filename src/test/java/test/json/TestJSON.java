@@ -16,8 +16,8 @@
 
 package test.json;
 
-import msfx.lib.json.JSONArray;
-import msfx.lib.json.JSONObject;
+import msfx.ztrash.json.JSONArray;
+import msfx.ztrash.json.JSONObject;
 
 import java.time.LocalDate;
 

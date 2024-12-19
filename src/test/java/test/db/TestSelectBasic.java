@@ -16,10 +16,10 @@
 
 package test.db;
 
-import msfx.lib.db.Types;
-import msfx.lib.db.rdbms.DBEngine;
-import msfx.lib.db.rdbms.adapters.MariaDBAdapter;
-import msfx.lib.db.rdbms.sql.Select;
+import msfx.ztrash.db.Types;
+import msfx.ztrash.db.rdbms.DBEngine;
+import msfx.ztrash.db.rdbms.adapters.MariaDBAdapter;
+import msfx.ztrash.db.rdbms.sql.Select;
 
 public class TestSelectBasic {
 	public static void main(String[] args) {

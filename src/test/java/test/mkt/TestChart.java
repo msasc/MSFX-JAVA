@@ -19,15 +19,14 @@ package test.mkt;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import msfx.mkt.Data;
-import msfx.mkt.DataSource;
-import msfx.mkt.IndicatorSource;
-import msfx.mkt.chart.ChartFrame;
-import msfx.mkt.chart.plotter.BarPlotter;
-import msfx.mkt.chart.plotter.LinePlotter;
-import msfx.mkt.info.IndicatorInfo;
-import msfx.mkt.sources.data.VChartSource;
-import msfx.mkt.sources.indicators.MovingAverage;
+import msfx.ztrash.mkt.Data;
+import msfx.ztrash.mkt.DataSource;
+import msfx.ztrash.mkt.IndicatorSource;
+import msfx.ztrash.mkt.chart.ChartFrame;
+import msfx.ztrash.mkt.chart.plotter.BarPlotter;
+import msfx.ztrash.mkt.chart.plotter.LinePlotter;
+import msfx.ztrash.mkt.sources.data.VChartSource;
+import msfx.ztrash.mkt.sources.indicators.MovingAverage;
 
 import java.io.File;
 
